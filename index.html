@@ -1,0 +1,1566 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="dark" data-fs="normal">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DataSciLab — Analyse Scientifique</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%230ea5e9'/%3E%3Cstop offset='100%25' stop-color='%236366f1'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='url(%23g)'/%3E%3Cpath d='M24 14 C20 22 28 26 24 34 C20 42 28 46 24 54' fill='none' stroke='white' stroke-width='2.5' stroke-linecap='round'/%3E%3Cpath d='M40 14 C44 22 36 26 40 34 C44 42 36 46 40 54' fill='none' stroke='white' stroke-width='2.5' stroke-linecap='round'/%3E%3Cline x1='26' y1='20' x2='38' y2='20' stroke='white' stroke-width='1.5'/%3E%3Cline x1='25' y1='28' x2='39' y2='28' stroke='white' stroke-width='1.5'/%3E%3Cline x1='25' y1='36' x2='39' y2='36' stroke='white' stroke-width='1.5'/%3E%3Cline x1='26' y1='44' x2='38' y2='44' stroke='white' stroke-width='1.5'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jstat/1.9.6/jstat.min.js"></script>
+<style>
+/* ════ VARIABLES ════ */
+:root{
+  --bg:#080c14;--bg2:#0d1422;--bg3:#111827;--surface:#141e30;--surface2:#1a2840;
+  --border:rgba(99,179,237,0.12);--accent:#38bdf8;--accent2:#06b6d4;--accent3:#818cf8;
+  --green:#34d399;--red:#f87171;--orange:#fb923c;--gold:#f59e0b;
+  --text:#e2eaf6;--text2:#8ca3c0;--text3:#506680;
+  --radius:12px;--sidebar:240px;
+  --mono:'DM Mono',monospace;--serif:'DM Serif Display',serif;--sans:'Manrope',sans-serif;
+}
+[data-theme="light"]{
+  --bg:#f0f4f8;--bg2:#e2eaf5;--bg3:#d8e2f0;--surface:#ffffff;--surface2:#eaf0fb;
+  --border:rgba(56,189,248,0.18);--text:#0f172a;--text2:#334155;--text3:#64748b;
+}
+[data-fs="small"] body{font-size:13px!important;}
+[data-fs="large"] body{font-size:17px!important;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15px;line-height:1.6;overflow-x:hidden;transition:background 0.3s,color 0.3s;}
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--surface2);border-radius:2px;}
+
+/* ════ AUTH ════ */
+#auth-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;background:var(--bg);}
+.auth-bg-glow{position:absolute;width:700px;height:700px;border-radius:50%;background:radial-gradient(circle,rgba(56,189,248,0.07),transparent 70%);top:-200px;left:-200px;pointer-events:none;}
+.auth-bg-glow2{position:absolute;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(129,140,248,0.06),transparent 70%);bottom:-150px;right:-150px;pointer-events:none;}
+.auth-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(56,189,248,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(56,189,248,0.03) 1px,transparent 1px);background-size:50px 50px;}
+.auth-wrap{position:relative;z-index:2;width:100%;max-width:460px;padding:20px;}
+.auth-box{background:var(--surface);border:1px solid var(--border);border-radius:22px;padding:40px;box-shadow:0 40px 80px rgba(0,0,0,0.4);}
+.auth-top-bar{height:2px;background:linear-gradient(90deg,var(--accent),var(--accent3));border-radius:22px 22px 0 0;margin:-40px -40px 30px;}
+.auth-logo{display:flex;align-items:center;gap:10px;justify-content:center;margin-bottom:22px;}
+.auth-logo-icon{width:40px;height:40px;background:linear-gradient(135deg,var(--accent),var(--accent3));border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:20px;}
+.auth-logo-text{font-family:var(--serif);font-size:1.6rem;color:var(--text);}
+.auth-logo-text span{color:var(--accent);}
+.auth-tabs{display:flex;background:var(--bg3);border-radius:10px;padding:4px;margin-bottom:22px;}
+.auth-tab{flex:1;padding:9px;background:transparent;border:none;border-radius:8px;color:var(--text3);font-family:var(--sans);font-size:0.875rem;font-weight:600;cursor:pointer;transition:all 0.2s;}
+.auth-tab.active{background:var(--surface2);color:var(--accent);}
+.auth-panel{display:none;}
+.auth-panel.active{display:block;}
+
+/* Form */
+.fg{margin-bottom:13px;}
+.fg label{display:block;font-size:0.72rem;font-weight:700;color:var(--text2);letter-spacing:0.05em;text-transform:uppercase;margin-bottom:6px;}
+.fi{width:100%;padding:11px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:9px;color:var(--text);font-family:var(--sans);font-size:0.9rem;outline:none;transition:all 0.2s;}
+.fi:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(56,189,248,0.1);}
+.fi::placeholder{color:var(--text3);}
+.ferr{font-size:0.72rem;color:var(--red);margin-top:5px;display:none;}
+.ferr.show{display:block;}
+.pw-bar{height:3px;background:var(--bg3);border-radius:3px;margin-top:6px;overflow:hidden;}
+.pw-fill{height:100%;width:0;border-radius:3px;transition:all 0.3s;}
+.pw-lbl{font-size:0.68rem;color:var(--text3);margin-top:3px;}
+.btn-auth{width:100%;padding:13px;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:10px;color:#06111c;font-family:var(--sans);font-size:0.95rem;font-weight:700;cursor:pointer;transition:all 0.2s;margin-top:4px;}
+.btn-auth:hover{opacity:0.88;transform:translateY(-1px);box-shadow:0 8px 20px rgba(56,189,248,0.25);}
+.auth-note{text-align:center;margin-top:12px;font-size:0.75rem;color:var(--text3);}
+
+/* ════ APP LAYOUT ════ */
+#app{display:none;height:100vh;overflow:hidden;}
+.layout{display:flex;height:100vh;}
+
+/* SIDEBAR */
+.sidebar{width:var(--sidebar);flex-shrink:0;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;transition:all 0.3s;}
+.sb-hdr{padding:16px;border-bottom:1px solid var(--border);}
+.sb-logo{display:flex;align-items:center;gap:9px;font-family:var(--serif);font-size:1.05rem;color:var(--text);}
+.sb-logo-icon{width:30px;height:30px;background:linear-gradient(135deg,var(--accent),var(--accent3));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;}
+.sb-user{margin-top:11px;display:flex;align-items:center;gap:9px;}
+.sb-av{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--accent3),var(--accent));display:flex;align-items:center;justify-content:center;font-size:0.85rem;font-weight:700;color:#fff;flex-shrink:0;}
+.sb-uname{font-size:0.79rem;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sb-uinst{font-size:0.67rem;color:var(--text3);}
+.sb-nav{padding:10px 8px;flex:1;}
+.sb-sec{font-family:var(--mono);font-size:0.58rem;color:var(--text3);letter-spacing:0.12em;text-transform:uppercase;padding:10px 8px 4px;}
+.nb{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:9px;color:var(--text3);font-size:0.83rem;font-weight:500;cursor:pointer;transition:all 0.15s;margin-bottom:1px;border:none;background:transparent;width:100%;text-align:left;}
+.nb:hover{background:var(--surface);color:var(--text2);}
+.nb.active{background:rgba(56,189,248,0.1);color:var(--accent);}
+.nb-ic{width:18px;text-align:center;flex-shrink:0;}
+.sb-ftr{padding:10px 8px;border-top:1px solid var(--border);}
+.sb-timer{font-family:var(--mono);font-size:0.64rem;color:var(--text3);padding:4px 8px;background:var(--bg3);border-radius:6px;text-align:center;margin-bottom:7px;}
+.btn-logout{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:9px;color:var(--text3);font-size:0.83rem;cursor:pointer;transition:all 0.15s;width:100%;border:none;background:transparent;font-weight:500;}
+.btn-logout:hover{color:var(--red);background:rgba(248,113,113,0.08);}
+
+/* CONTENT */
+.content{flex:1;overflow-y:auto;background:var(--bg);}
+.view{display:none;padding:28px 32px;max-width:1100px;}
+.view.active{display:block;}
+.ph{margin-bottom:22px;}
+.ptitle{font-family:var(--serif);font-size:1.85rem;color:var(--text);margin-bottom:3px;}
+.psub{font-size:0.83rem;color:var(--text3);}
+
+/* CARDS */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;}
+.ct{font-size:0.7rem;font-weight:700;color:var(--text2);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:5px;font-family:var(--mono);}
+.cv{font-family:var(--serif);font-size:1.9rem;color:var(--text);}
+.cn{font-size:0.7rem;color:var(--text3);margin-top:2px;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:11px;}
+.mb{margin-bottom:18px;}
+.mb2{margin-bottom:26px;}
+
+/* BUTTONS */
+.btn{padding:9px 18px;border-radius:9px;font-family:var(--sans);font-size:0.83rem;font-weight:600;cursor:pointer;border:none;transition:all 0.2s;display:inline-flex;align-items:center;gap:7px;}
+.bp{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#06111c;}
+.bp:hover{opacity:0.88;transform:translateY(-1px);box-shadow:0 6px 18px rgba(56,189,248,0.2);}
+.bs{background:var(--surface2);color:var(--text2);border:1px solid var(--border);}
+.bs:hover{border-color:var(--accent);color:var(--accent);}
+.bd{background:rgba(248,113,113,0.1);color:var(--red);border:1px solid rgba(248,113,113,0.2);}
+.bd:hover{background:rgba(248,113,113,0.18);}
+.bg2{background:rgba(52,211,153,0.1);color:var(--green);border:1px solid rgba(52,211,153,0.2);}
+.bg2:hover{background:rgba(52,211,153,0.18);}
+.btn-sm{padding:5px 11px;font-size:0.76rem;}
+.btn:disabled{opacity:0.4;cursor:not-allowed;transform:none!important;}
+.flex{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+
+/* ALERTS */
+.alert{padding:11px 14px;border-radius:9px;font-size:0.82rem;margin-bottom:14px;display:flex;align-items:flex-start;gap:9px;line-height:1.6;}
+.ai{background:rgba(56,189,248,0.07);border:1px solid rgba(56,189,248,0.18);color:var(--text2);}
+.aw{background:rgba(245,158,11,0.07);border:1px solid rgba(245,158,11,0.2);color:#fbbf24;}
+.as{background:rgba(52,211,153,0.07);border:1px solid rgba(52,211,153,0.2);color:var(--green);}
+.ae{background:rgba(248,113,113,0.07);border:1px solid rgba(248,113,113,0.2);color:var(--red);}
+
+/* TABLE */
+.tw{overflow-x:auto;border-radius:var(--radius);border:1px solid var(--border);}
+table{width:100%;border-collapse:collapse;font-size:0.78rem;}
+th{background:var(--surface2);padding:8px 12px;text-align:left;font-size:0.66rem;color:var(--text2);font-weight:700;letter-spacing:0.05em;text-transform:uppercase;white-space:nowrap;border-bottom:1px solid var(--border);}
+td{padding:8px 12px;border-bottom:1px solid rgba(99,179,237,0.04);color:var(--text);}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:rgba(56,189,248,0.02);}
+.tn{font-family:var(--mono);color:var(--accent);}
+.tc{color:var(--accent3);}
+.tnull{color:var(--text3);font-style:italic;}
+.tbadge{display:inline-block;padding:2px 7px;border-radius:4px;font-family:var(--mono);font-size:0.62rem;}
+.tnum{background:rgba(56,189,248,0.1);color:var(--accent);border:1px solid rgba(56,189,248,0.2);}
+.tcat{background:rgba(129,140,248,0.1);color:var(--accent3);border:1px solid rgba(129,140,248,0.2);}
+
+/* UPLOAD */
+.upload-z{border:2px dashed var(--border);border-radius:16px;padding:44px 32px;text-align:center;cursor:pointer;transition:all 0.25s;background:var(--surface);}
+.upload-z:hover,.upload-z.over{border-color:var(--accent);background:rgba(56,189,248,0.04);}
+.upload-icon{font-size:2.4rem;margin-bottom:11px;}
+.upload-title{font-size:1rem;font-weight:700;margin-bottom:6px;}
+.upload-sub{font-size:0.8rem;color:var(--text3);margin-bottom:14px;}
+.ftags{display:flex;gap:7px;justify-content:center;flex-wrap:wrap;}
+.ftag{padding:3px 8px;background:var(--bg3);border:1px solid var(--border);border-radius:5px;font-family:var(--mono);font-size:0.66rem;color:var(--text3);}
+
+/* PROGRESS */
+.pbar-w{height:3px;background:var(--surface2);border-radius:3px;overflow:hidden;margin-bottom:14px;}
+.pbar-f{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent3));border-radius:3px;transition:width 0.4s;width:0%;}
+.loading{display:flex;align-items:center;gap:9px;color:var(--text3);font-size:0.83rem;}
+.spin{width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite;flex-shrink:0;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* ANALYSIS CARDS */
+.agrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px;}
+.acard{padding:14px;background:var(--surface);border:2px solid var(--border);border-radius:var(--radius);cursor:pointer;transition:all 0.2s;text-align:center;}
+.acard:hover{border-color:rgba(56,189,248,0.3);}
+.acard.sel{border-color:var(--accent);background:rgba(56,189,248,0.06);}
+.aic{font-size:1.4rem;margin-bottom:6px;}
+.ain{font-size:0.78rem;font-weight:700;color:var(--text);margin-bottom:2px;}
+.aid{font-size:0.67rem;color:var(--text3);}
+
+/* STAT TABLE */
+.st{width:100%;border-collapse:collapse;}
+.st td{padding:8px 12px;border-bottom:1px solid rgba(99,179,237,0.05);font-size:0.82rem;}
+.st tr:last-child td{border-bottom:none;}
+.sk{color:var(--text3);width:55%;}
+.sv{font-family:var(--mono);color:var(--accent);font-weight:500;}
+.sv.sig{color:var(--green);}
+.sv.nsig{color:var(--red);}
+
+/* INTERPRETATION BOX */
+.interp-box{background:var(--bg2);border:1px solid rgba(52,211,153,0.2);border-radius:var(--radius);padding:18px;font-size:0.84rem;color:var(--text2);line-height:1.85;}
+.interp-hdr{font-family:var(--mono);font-size:0.67rem;color:var(--green);margin-bottom:10px;letter-spacing:0.06em;}
+
+/* TOAST */
+#toast{position:fixed;bottom:22px;right:22px;z-index:99999;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 17px;display:flex;align-items:center;gap:9px;box-shadow:0 8px 24px rgba(0,0,0,0.4);transform:translateY(80px);opacity:0;transition:all 0.3s;font-size:0.84rem;max-width:360px;}
+#toast.show{transform:translateY(0);opacity:1;}
+#toast.ts{border-color:rgba(52,211,153,0.3);}
+#toast.te{border-color:rgba(248,113,113,0.3);}
+
+/* MODAL */
+.modal-ov{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9998;display:none;align-items:center;justify-content:center;padding:20px;}
+.modal-ov.open{display:flex;}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:30px;max-width:460px;width:100%;box-shadow:0 24px 60px rgba(0,0,0,0.5);}
+.modal-title{font-family:var(--serif);font-size:1.25rem;margin-bottom:9px;}
+.modal-sub{font-size:0.84rem;color:var(--text2);margin-bottom:20px;line-height:1.65;}
+
+/* CHART */
+.chart-c{position:relative;height:240px;}
+
+/* DOC TYPES */
+.dg{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px;}
+.dc{padding:18px;background:var(--surface);border:2px solid var(--border);border-radius:var(--radius);cursor:pointer;transition:all 0.2s;text-align:center;}
+.dc:hover{border-color:rgba(56,189,248,0.3);}
+.dc.sel{border-color:var(--accent);background:rgba(56,189,248,0.06);}
+.dci{font-size:1.7rem;margin-bottom:8px;}
+.dcn{font-size:0.83rem;font-weight:700;}
+.dcd{font-size:0.7rem;color:var(--text3);margin-top:2px;}
+
+/* TUTORIAL */
+#tutorial{position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:99997;display:none;align-items:center;justify-content:center;}
+#tutorial.open{display:flex;}
+.tut-box{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:36px;max-width:500px;width:90%;text-align:center;}
+.tut-step{font-family:var(--mono);font-size:0.7rem;color:var(--accent);letter-spacing:0.1em;margin-bottom:12px;}
+.tut-icon{font-size:3rem;margin-bottom:14px;}
+.tut-title{font-family:var(--serif);font-size:1.4rem;margin-bottom:10px;}
+.tut-desc{font-size:0.85rem;color:var(--text2);line-height:1.7;margin-bottom:22px;}
+.tut-dots{display:flex;gap:7px;justify-content:center;margin-bottom:20px;}
+.tut-dot{width:7px;height:7px;border-radius:50%;background:var(--border);}
+.tut-dot.active{background:var(--accent);}
+
+/* AUTOSAVE */
+#autosave-ind{position:fixed;top:12px;right:16px;z-index:9990;font-size:0.68rem;color:var(--green);font-family:var(--mono);opacity:0;transition:opacity 0.5s;background:var(--surface);border:1px solid rgba(52,211,153,0.2);padding:4px 10px;border-radius:20px;}
+#autosave-ind.show{opacity:1;}
+
+/* THEME INPUT */
+.tf label{display:block;font-size:0.72rem;font-weight:700;color:var(--text2);letter-spacing:0.05em;text-transform:uppercase;margin-bottom:6px;}
+.tf input,.tf select,.tf textarea{width:100%;padding:11px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:9px;color:var(--text);font-size:0.88rem;outline:none;transition:all 0.2s;font-family:var(--sans);}
+.tf input:focus,.tf select:focus,.tf textarea:focus{border-color:var(--accent);}
+.tf{margin-bottom:13px;}
+
+/* NOTES */
+.note-a{width:100%;padding:12px;background:var(--bg3);border:1px solid var(--border);border-radius:9px;color:var(--text);font-family:var(--sans);font-size:0.84rem;resize:vertical;min-height:90px;outline:none;}
+.note-a:focus{border-color:var(--accent);}
+
+/* HISTORY */
+.hist-item{display:flex;align-items:center;gap:12px;padding:11px 14px;background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:8px;transition:all 0.2s;}
+.hist-item:hover{border-color:rgba(56,189,248,0.3);}
+
+/* SEARCH */
+.search-inp{width:100%;padding:9px 14px;background:var(--surface);border:1px solid var(--border);border-radius:9px;color:var(--text);font-size:0.84rem;outline:none;margin-bottom:12px;font-family:var(--sans);}
+.search-inp:focus{border-color:var(--accent);}
+
+/* EMPTY */
+.empty{text-align:center;padding:44px 20px;}
+.ei{font-size:2.2rem;margin-bottom:10px;opacity:0.45;}
+.et{font-size:0.9rem;font-weight:600;color:var(--text2);margin-bottom:4px;}
+.es{font-size:0.79rem;color:var(--text3);}
+
+/* CONTACT */
+.contact-btn{display:flex;align-items:center;gap:14px;padding:16px 20px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);text-decoration:none;color:var(--text);transition:all 0.2s;margin-bottom:12px;}
+.contact-btn:hover{border-color:var(--accent);transform:translateY(-2px);}
+
+/* FAQ */
+.faq-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:9px;overflow:hidden;}
+.faq-q{padding:14px 16px;font-weight:600;font-size:0.87rem;cursor:pointer;display:flex;justify-content:space-between;align-items:center;}
+.faq-q:hover{color:var(--accent);}
+.faq-a{padding:0 16px;max-height:0;overflow:hidden;transition:all 0.3s;font-size:0.83rem;color:var(--text2);line-height:1.7;}
+.faq-a.open{padding:0 16px 14px;max-height:300px;}
+
+/* DOC PREVIEW */
+.doc-prev{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:20px;font-size:0.82rem;color:var(--text2);line-height:1.9;white-space:pre-wrap;max-height:440px;overflow-y:auto;font-family:var(--mono);}
+
+/* MOBILE TOPBAR */
+.topbar{display:none;padding:12px 16px;background:var(--bg2);border-bottom:1px solid var(--border);align-items:center;gap:12px;}
+.topbar-menu{background:transparent;border:none;font-size:1.2rem;cursor:pointer;color:var(--text2);}
+
+/* SETTINGS */
+.sset{margin-bottom:26px;}
+.sset-t{font-size:0.87rem;font-weight:700;color:var(--text);margin-bottom:12px;padding-bottom:9px;border-bottom:1px solid var(--border);}
+
+/* CONV GUIDE */
+.conv-code{background:var(--bg3);border-radius:9px;padding:14px;border:1px solid var(--border);margin-top:10px;}
+.conv-code-hdr{font-family:var(--mono);font-size:0.7rem;color:var(--accent);margin-bottom:8px;}
+.conv-code code{font-family:var(--mono);font-size:0.82rem;color:var(--green);line-height:2.1;display:block;}
+
+/* NEWSLETTER */
+.nl-box{background:linear-gradient(135deg,rgba(56,189,248,0.07),rgba(129,140,248,0.07));border:1px solid rgba(56,189,248,0.2);border-radius:16px;padding:28px;text-align:center;margin-bottom:20px;}
+.nl-title{font-family:var(--serif);font-size:1.3rem;margin-bottom:8px;}
+.nl-form{display:flex;gap:10px;max-width:400px;margin:16px auto 0;flex-wrap:wrap;}
+.nl-form input{flex:1;min-width:200px;padding:10px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:9px;color:var(--text);font-size:0.85rem;outline:none;font-family:var(--sans);}
+.nl-form input:focus{border-color:var(--accent);}
+
+/* 404 */
+.p404{text-align:center;padding:80px 20px;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:50vh;}
+.p404-num{font-family:var(--serif);font-size:5rem;background:linear-gradient(135deg,var(--accent),var(--accent3));-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1;margin-bottom:14px;}
+
+.hidden{display:none!important;}
+.divider{border:none;border-top:1px solid var(--border);margin:18px 0;}
+
+@media(max-width:768px){
+  .sidebar{position:fixed;left:-100%;z-index:1000;height:100%;transition:left 0.3s;}
+  .sidebar.open{left:0;}
+  .topbar{display:flex;}
+  .layout{flex-direction:column;}
+  .view{padding:18px 14px;}
+  .g4{grid-template-columns:1fr 1fr;}
+  .g2{grid-template-columns:1fr;}
+  .agrid{grid-template-columns:1fr 1fr;}
+  .dg{grid-template-columns:1fr 1fr;}
+}
+</style>
+</head>
+<body>
+
+<!-- ════ AUTH ════ -->
+<div id="auth-screen">
+  <div class="auth-bg-glow"></div>
+  <div class="auth-bg-glow2"></div>
+  <div class="auth-grid"></div>
+  <div class="auth-wrap">
+    <div class="auth-box">
+      <div class="auth-top-bar"></div>
+      <div class="auth-logo">
+        <div class="auth-logo-icon">🧬</div>
+        <div class="auth-logo-text">DataSci<span>Lab</span></div>
+      </div>
+      <div class="auth-tabs">
+        <button class="auth-tab active" onclick="authTab('login')">Connexion</button>
+        <button class="auth-tab" onclick="authTab('register')">Inscription</button>
+        <button class="auth-tab" onclick="authTab('forgot')">Mot de passe</button>
+      </div>
+
+      <!-- LOGIN -->
+      <div class="auth-panel active" id="p-login">
+        <div class="fg"><label>Email</label><input type="email" class="fi" id="l-email" placeholder="votre@email.com" onkeydown="if(event.key==='Enter')login()"></div>
+        <div class="fg"><label>Mot de passe</label><input type="password" class="fi" id="l-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')login()"></div>
+        <div class="ferr" id="l-err"></div>
+        <button class="btn-auth" onclick="login()">Se connecter →</button>
+        <p class="auth-note">Démo : <strong>demo@datascilab.com</strong> / <strong>demo1234</strong></p>
+      </div>
+
+      <!-- REGISTER -->
+      <div class="auth-panel" id="p-register">
+        <div class="fg"><label>Nom complet *</label><input type="text" class="fi" id="r-name" placeholder="Dr. Aminata Diallo"></div>
+        <div class="fg"><label>Email *</label><input type="email" class="fi" id="r-email" placeholder="votre@email.com"></div>
+        <div class="fg"><label>Institution</label><input type="text" class="fi" id="r-inst" placeholder="Université d'Abomey-Calavi"></div>
+        <div class="fg">
+          <label>Mot de passe * (min. 8 caractères)</label>
+          <input type="password" class="fi" id="r-pass" placeholder="••••••••" oninput="checkPw(this.value)">
+          <div class="pw-bar"><div class="pw-fill" id="pw-fill"></div></div>
+          <div class="pw-lbl" id="pw-lbl">Saisissez un mot de passe</div>
+        </div>
+        <div class="fg"><label>Confirmer le mot de passe *</label><input type="password" class="fi" id="r-pass2" placeholder="••••••••"></div>
+        <div class="fg">
+          <label>Question secrète *</label>
+          <select class="fi" id="r-q">
+            <option value="">Choisir...</option>
+            <option>Prénom de votre mère ?</option>
+            <option>Ville de naissance ?</option>
+            <option>Nom de votre école primaire ?</option>
+            <option>Surnom d'enfance ?</option>
+            <option>Plat préféré ?</option>
+          </select>
+        </div>
+        <div class="fg"><label>Réponse secrète *</label><input type="text" class="fi" id="r-ans" placeholder="Votre réponse"></div>
+        <div class="ferr" id="r-err"></div>
+        <button class="btn-auth" onclick="register()">✦ Créer mon compte gratuit</button>
+      </div>
+
+      <!-- FORGOT -->
+      <div class="auth-panel" id="p-forgot">
+        <div id="f-s1">
+          <div class="alert ai">🔑 Saisissez votre email pour récupérer votre compte.</div>
+          <div class="fg"><label>Email</label><input type="email" class="fi" id="f-email" placeholder="votre@email.com"></div>
+          <button class="btn-auth" onclick="forgotS1()">Continuer →</button>
+        </div>
+        <div id="f-s2" class="hidden">
+          <div class="fg"><label id="f-qlbl">Question secrète</label><input type="text" class="fi" id="f-ans" placeholder="Votre réponse"></div>
+          <div class="fg"><label>Nouveau mot de passe</label><input type="password" class="fi" id="f-np" placeholder="Min. 8 caractères"></div>
+          <div class="ferr" id="f-err"></div>
+          <button class="btn-auth" onclick="forgotS2()">Réinitialiser →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════ APP ════ -->
+<div id="app">
+  <div class="topbar">
+    <button class="topbar-menu" onclick="toggleSB()">☰</button>
+    <div style="font-family:var(--serif);font-size:1rem;color:var(--text)">DataSci<span style="color:var(--accent)">Lab</span></div>
+    <div style="margin-left:auto;display:flex;gap:7px;">
+      <button class="btn btn-sm bs" onclick="toggleTheme()">🌙</button>
+      <button class="btn btn-sm bs" onclick="toggleLang()" id="lang-btn-m">FR</button>
+    </div>
+  </div>
+  <div class="layout">
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sb-hdr">
+        <div class="sb-logo"><div class="sb-logo-icon">🧬</div>DataSci<span style="color:var(--accent)">Lab</span></div>
+        <div class="sb-user">
+          <div class="sb-av" id="sb-av">A</div>
+          <div><div class="sb-uname" id="sb-name">Utilisateur</div><div class="sb-uinst" id="sb-inst">Institution</div></div>
+        </div>
+      </div>
+      <nav class="sb-nav">
+        <div class="sb-sec">Navigation</div>
+        <button class="nb active" onclick="nav('dashboard')"><span class="nb-ic">🏠</span>Tableau de bord</button>
+        <button class="nb" onclick="nav('theme')"><span class="nb-ic">🎯</span>Thème de recherche</button>
+        <button class="nb" onclick="nav('import')"><span class="nb-ic">📤</span>Importer données</button>
+        <button class="nb" onclick="nav('analyse')"><span class="nb-ic">📊</span>Analyser</button>
+        <button class="nb" onclick="nav('resultats')"><span class="nb-ic">📈</span>Résultats</button>
+        <div class="sb-sec">Génération</div>
+        <button class="nb" onclick="nav('documents')"><span class="nb-ic">📄</span>Documents</button>
+        <div class="sb-sec">Informations</div>
+        <button class="nb" onclick="nav('about')"><span class="nb-ic">ℹ️</span>À propos</button>
+        <button class="nb" onclick="nav('contact')"><span class="nb-ic">📞</span>Contact</button>
+        <button class="nb" onclick="nav('faq')"><span class="nb-ic">❓</span>FAQ</button>
+        <button class="nb" onclick="nav('privacy')"><span class="nb-ic">🔒</span>Confidentialité</button>
+        <button class="nb" onclick="nav('newsletter')"><span class="nb-ic">📬</span>Newsletter</button>
+        <div class="sb-sec">Compte</div>
+        <button class="nb" onclick="nav('settings')"><span class="nb-ic">⚙️</span>Paramètres</button>
+      </nav>
+      <div class="sb-ftr">
+        <div class="sb-timer" id="sb-timer">⏱ Session : 30:00</div>
+        <div style="display:flex;gap:6px;margin-bottom:8px;">
+          <button class="btn btn-sm bs" style="flex:1" onclick="toggleTheme()" id="theme-btn">🌙 Sombre</button>
+          <button class="btn btn-sm bs" style="flex:1" onclick="toggleLang()" id="lang-btn">FR</button>
+        </div>
+        <button class="btn-logout" onclick="logout()"><span>🚪</span>Déconnexion</button>
+      </div>
+    </aside>
+
+    <!-- CONTENT -->
+    <main class="content">
+
+      <!-- DASHBOARD -->
+      <div class="view active" id="v-dashboard">
+        <div class="ph"><h1 class="ptitle">Bonjour, <span id="dash-name">Utilisateur</span> 👋</h1><p class="psub">Bienvenue sur DataSciLab — plateforme d'analyse scientifique 100% gratuite.</p></div>
+        <div class="g4 mb2">
+          <div class="card"><div class="ct">Fichiers</div><div class="cv" id="d-files">0</div><div class="cn">datasets chargés</div></div>
+          <div class="card"><div class="ct">Analyses</div><div class="cv" id="d-analyses">0</div><div class="cn">cette session</div></div>
+          <div class="card"><div class="ct">Variables</div><div class="cv" id="d-vars">—</div><div class="cn">dans le dataset</div></div>
+          <div class="card"><div class="ct">Observations</div><div class="cv" id="d-rows">—</div><div class="cn">lignes de données</div></div>
+        </div>
+        <div class="g2 mb2">
+          <div class="card">
+            <div class="ct" style="margin-bottom:12px;">🚀 Actions rapides</div>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <button class="btn bp" onclick="nav('theme')">🎯 Définir le thème de recherche</button>
+              <button class="btn bs" onclick="nav('import')">📤 Importer des données</button>
+              <button class="btn bs" onclick="nav('analyse')">📊 Lancer une analyse</button>
+              <button class="btn bs" onclick="nav('documents')">📄 Générer un document</button>
+            </div>
+          </div>
+          <div class="card"><div class="ct" style="margin-bottom:12px;">📁 Dataset actif</div><div id="dash-ds"></div></div>
+        </div>
+        <div class="card mb2">
+          <div class="ct" style="margin-bottom:10px;">📝 Notes personnelles</div>
+          <textarea class="note-a" id="notes-a" placeholder="Écrivez vos observations, commentaires ou idées ici..." oninput="saveNotes()"></textarea>
+        </div>
+        <div class="card">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+            <div class="ct">🕐 Historique des analyses</div>
+            <button class="btn btn-sm bd" onclick="confirmDel('history')">🗑️ Vider</button>
+          </div>
+          <input type="text" class="search-inp" placeholder="🔍 Rechercher..." oninput="filterHist(this.value)">
+          <div id="hist-list"></div>
+        </div>
+      </div>
+
+      <!-- THÈME -->
+      <div class="view" id="v-theme">
+        <div class="ph"><h1 class="ptitle">🎯 Thème de recherche</h1><p class="psub">Définissez le contexte de votre étude pour des analyses adaptées.</p></div>
+        <div class="alert ai mb2"><span>💡</span> Ces informations seront utilisées pour personnaliser l'interprétation de vos résultats et la génération de vos documents.</div>
+        <div class="card">
+          <div class="g2">
+            <div class="tf"><label>Thème / Domaine *</label><input type="text" id="th-theme" placeholder="Ex: Diabète, Performance scolaire, Paludisme..."></div>
+            <div class="tf"><label>Objectif principal *</label><input type="text" id="th-obj" placeholder="Ex: Évaluer l'effet du traitement X sur..."></div>
+            <div class="tf"><label>Population étudiée</label><input type="text" id="th-pop" placeholder="Ex: Adultes 25-60 ans, élèves du secondaire..."></div>
+            <div class="tf"><label>Période de l'étude</label><input type="text" id="th-period" placeholder="Ex: Janvier - Décembre 2023"></div>
+            <div class="tf"><label>Lieu de l'étude</label><input type="text" id="th-lieu" placeholder="Ex: CHU de Cotonou, Bénin"></div>
+            <div class="tf"><label>Type d'étude</label>
+              <select id="th-type">
+                <option value="">Sélectionner...</option>
+                <option>Étude transversale</option><option>Étude longitudinale</option>
+                <option>Étude cas-témoins</option><option>Étude de cohorte</option>
+                <option>Essai clinique randomisé</option><option>Étude descriptive</option><option>Autre</option>
+              </select>
+            </div>
+          </div>
+          <div class="tf" style="margin-top:4px;"><label>Description complémentaire</label><textarea id="th-desc" style="width:100%;padding:11px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:9px;color:var(--text);font-size:0.88rem;outline:none;resize:vertical;min-height:75px;font-family:var(--sans);" placeholder="Hypothèses, contexte, informations complémentaires..."></textarea></div>
+          <div class="flex" style="margin-top:14px;">
+            <button class="btn bp" onclick="saveTheme()">💾 Enregistrer</button>
+            <button class="btn bs" onclick="clearTheme()">🗑️ Effacer</button>
+          </div>
+          <div id="th-status" class="hidden" style="margin-top:12px;"></div>
+        </div>
+      </div>
+
+      <!-- IMPORT -->
+      <div class="view" id="v-import">
+        <div class="ph"><h1 class="ptitle">📤 Importer des données</h1><p class="psub">Chargez votre fichier — détection automatique des variables, types et valeurs manquantes.</p></div>
+        <div id="no-theme-w" class="alert aw mb2 hidden"><span>⚠️</span> Thème non défini. <button class="btn btn-sm bs" style="margin-left:8px" onclick="nav('theme')">Définir</button></div>
+        <div class="upload-z mb2" id="upload-z" onclick="document.getElementById('fin').click()">
+          <input type="file" id="fin" accept=".csv,.xlsx,.xls" style="display:none" onchange="handleFile(this.files[0])">
+          <div class="upload-icon">📂</div>
+          <div class="upload-title">Glissez votre fichier ici</div>
+          <div class="upload-sub">ou cliquez pour sélectionner depuis votre ordinateur</div>
+          <div class="ftags"><span class="ftag">.csv</span><span class="ftag">.xlsx</span><span class="ftag">.xls</span></div>
+        </div>
+        <!-- GUIDE CONVERSION -->
+        <div class="card mb2">
+          <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;" onclick="toggleConv()">
+            <div class="ct">📖 Vous avez un fichier SPSS, Stata ou R ? Cliquez ici</div>
+            <span id="conv-arr">▼</span>
+          </div>
+          <div id="conv-guide" class="hidden" style="margin-top:16px;">
+            <div class="alert ai mb2"><span>💡</span> Convertissez votre fichier en CSV ou Excel avec les instructions ci-dessous, puis importez-le ici.</div>
+            <div class="flex" style="margin-bottom:14px;">
+              <button class="btn btn-sm bp" onclick="showConv('spss',this)">SPSS (.sav)</button>
+              <button class="btn btn-sm bs" onclick="showConv('stata',this)">Stata (.dta)</button>
+              <button class="btn btn-sm bs" onclick="showConv('r',this)">R (.rds)</button>
+              <button class="btn btn-sm bs" onclick="showConv('online',this)">🌐 En ligne</button>
+            </div>
+            <div id="conv-spss">
+              <p style="font-size:0.84rem;color:var(--text2);margin-bottom:10px;line-height:1.8;"><strong>Menu SPSS :</strong> Fichier → Exporter → CSV → OK</p>
+              <div class="conv-code"><div class="conv-code-hdr">// Syntaxe SPSS</div><code>SAVE TRANSLATE OUTFILE='monfichier.csv'<br>&nbsp;&nbsp;/TYPE=CSV /FIELDNAMES /CELLS=VALUES.<br>EXECUTE.</code></div>
+            </div>
+            <div id="conv-stata" class="hidden">
+              <p style="font-size:0.84rem;color:var(--text2);margin-bottom:10px;line-height:1.8;"><strong>Menu Stata :</strong> File → Save As → CSV</p>
+              <div class="conv-code"><div class="conv-code-hdr">// Commande Stata</div><code>use "monfichier.dta", clear<br>export delimited "monfichier.csv", replace</code></div>
+            </div>
+            <div id="conv-r" class="hidden">
+              <div class="conv-code"><div class="conv-code-hdr">// Code R — depuis .rds</div><code>data &lt;- readRDS("monfichier.rds")<br>write.csv(data, "monfichier.csv", row.names=FALSE)</code></div>
+              <div class="conv-code" style="margin-top:10px;"><div class="conv-code-hdr">// Code R — depuis .sav (package haven)</div><code>library(haven)<br>data &lt;- read_sav("monfichier.sav")<br>write.csv(data, "monfichier.csv", row.names=FALSE)</code></div>
+            </div>
+            <div id="conv-online" class="hidden">
+              <div style="display:flex;flex-direction:column;gap:9px;">
+                <a href="https://www.convertcsv.com/spss-to-csv.htm" target="_blank" class="contact-btn" style="margin-bottom:0"><span style="font-size:1.3rem">🔄</span><div><div style="font-weight:600;font-size:0.84rem">ConvertCSV.com</div><div style="font-size:0.73rem;color:var(--text3)">SPSS → CSV gratuit en ligne</div></div><span style="margin-left:auto;color:var(--accent)">→</span></a>
+                <a href="https://cloudconvert.com/dta-to-csv" target="_blank" class="contact-btn" style="margin-bottom:0"><span style="font-size:1.3rem">☁️</span><div><div style="font-weight:600;font-size:0.84rem">CloudConvert</div><div style="font-size:0.73rem;color:var(--text3)">Stata DTA → CSV en ligne</div></div><span style="margin-left:auto;color:var(--accent)">→</span></a>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="import-prog" class="hidden mb2"><div class="pbar-w"><div class="pbar-f" id="pbar"></div></div><div class="loading"><div class="spin"></div>Analyse du fichier...</div></div>
+        <div id="import-res" class="hidden">
+          <div class="alert as mb2"><span>✅</span><span id="import-msg">Fichier chargé</span></div>
+          <div class="flex mb2"><button class="btn btn-sm bd" onclick="confirmDel('dataset')">🗑️ Supprimer ce dataset</button></div>
+          <div class="card mb"><div class="ct" style="margin-bottom:11px;">📋 Variables détectées</div><div id="cols-tbl"></div></div>
+          <div class="card mb"><div class="ct" style="margin-bottom:11px;">⚠️ Valeurs manquantes & Outliers</div><div id="missing-c"></div></div>
+          <div class="card"><div class="ct" style="margin-bottom:11px;">👁️ Aperçu — 10 premières lignes</div><div class="tw" id="preview-tbl"></div></div>
+        </div>
+      </div>
+
+      <!-- ANALYSE -->
+      <div class="view" id="v-analyse">
+        <div class="ph"><h1 class="ptitle">📊 Analyser</h1><p class="psub">Choisissez votre test statistique et configurez les variables.</p></div>
+        <div id="no-data-w" class="alert aw hidden"><span>⚠️</span> Aucun dataset chargé. <button class="btn btn-sm bs" style="margin-left:8px" onclick="nav('import')">Importer</button></div>
+        <div id="analyse-body" class="hidden">
+          <div id="theme-badge" class="alert ai mb2" style="display:none;"><span>🎯</span><span id="tb-txt"></span></div>
+          <div class="card mb2">
+            <div class="ct" style="margin-bottom:12px;">🤖 Suggestion automatique</div>
+            <button class="btn bp" onclick="autoSuggest()">Analyser mes données automatiquement</button>
+            <div id="auto-res" class="hidden" style="margin-top:14px;"></div>
+          </div>
+          <div class="card mb2">
+            <div class="ct" style="margin-bottom:13px;">🔬 Choisir manuellement le test</div>
+            <div class="agrid">
+              <div class="acard sel" data-t="descriptive" onclick="selA(this)"><div class="aic">📊</div><div class="ain">Statistiques descriptives</div><div class="aid">Moyenne, médiane, écart-type…</div></div>
+              <div class="acard" data-t="ttest" onclick="selA(this)"><div class="aic">⚖️</div><div class="ain">Test T de Student</div><div class="aid">Comparer 2 groupes</div></div>
+              <div class="acard" data-t="anova" onclick="selA(this)"><div class="aic">📐</div><div class="ain">ANOVA</div><div class="aid">Comparer ≥3 groupes</div></div>
+              <div class="acard" data-t="correlation" onclick="selA(this)"><div class="aic">🔗</div><div class="ain">Corrélation Pearson</div><div class="aid">Relation entre 2 variables</div></div>
+              <div class="acard" data-t="regression" onclick="selA(this)"><div class="aic">📉</div><div class="ain">Régression linéaire</div><div class="aid">Prédire une variable</div></div>
+              <div class="acard" data-t="chisquare" onclick="selA(this)"><div class="aic">🎲</div><div class="ain">Test Chi-carré</div><div class="aid">Variables catégorielles</div></div>
+            </div>
+            <div class="card mb2" style="margin-top:0;"><div class="ct" style="margin-bottom:13px;">⚙️ Variables</div><div id="var-cfg" class="g2"></div></div>
+            <button class="btn bp" style="font-size:0.95rem;padding:11px 26px;" onclick="runAnalysis()">▶ Lancer l'analyse</button>
+          </div>
+          <div class="card">
+            <div class="ct" style="margin-bottom:10px;">↔ Comparer 2 analyses</div>
+            <p style="font-size:0.82rem;color:var(--text3);margin-bottom:12px;">Lancez 2 analyses puis comparez-les côte à côte.</p>
+            <button class="btn bs" onclick="compareA()">Comparer les 2 dernières analyses</button>
+            <div id="cmp-res" class="hidden" style="margin-top:16px;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RÉSULTATS -->
+      <div class="view" id="v-resultats">
+        <div class="ph"><h1 class="ptitle">📈 Résultats</h1><p class="psub">Tableau statistique, graphiques et interprétation automatique.</p></div>
+        <div id="no-res"><div class="empty"><div class="ei">📈</div><div class="et">Aucune analyse effectuée</div><div class="es">Lancez une analyse pour voir les résultats.</div><button class="btn bp" style="margin-top:12px" onclick="nav('analyse')">Aller à l'analyse</button></div></div>
+        <div id="res-body" class="hidden">
+          <div class="g2 mb2">
+            <div class="card">
+              <div class="ct" style="margin-bottom:11px;">📋 Tableau statistique</div>
+              <table class="st" id="stat-tbl"></table>
+            </div>
+            <div class="card">
+              <div style="display:flex;gap:7px;margin-bottom:12px;flex-wrap:wrap;" id="chart-tabs"></div>
+              <div class="chart-c"><canvas id="main-chart"></canvas></div>
+              <div style="margin-top:10px;" class="flex">
+                <button class="btn btn-sm bs" onclick="exportChart()">🖼️ PNG</button>
+                <button class="btn btn-sm bs" onclick="printRes()">🖨️ Imprimer</button>
+              </div>
+            </div>
+          </div>
+          <div class="card mb2">
+            <div class="ct" style="margin-bottom:11px;">🧠 Interprétation automatique</div>
+            <div class="interp-box" id="interp-box"><div class="interp-hdr">// INTERPRÉTATION STATISTIQUE</div><div id="interp-text"></div></div>
+            <div style="margin-top:10px;">
+              <textarea class="note-a hidden" id="interp-edit" style="min-height:120px;"></textarea>
+              <button class="btn btn-sm bs" id="btn-edit" onclick="editInterp()" style="margin-top:8px;">✏️ Modifier l'interprétation</button>
+            </div>
+          </div>
+          <div class="flex">
+            <button class="btn bs" onclick="exportCSV()">📊 Export CSV</button>
+            <button class="btn bs" onclick="exportWord()">📝 Export Word</button>
+            <button class="btn bg2" onclick="nav('documents')">📄 Générer document</button>
+            <button class="btn bd" onclick="confirmDel('results')">🗑️ Supprimer</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- DOCUMENTS -->
+      <div class="view" id="v-documents">
+        <div class="ph"><h1 class="ptitle">📄 Générer un document</h1><p class="psub">Documents académiques structurés générés automatiquement à partir de vos données et analyses.</p></div>
+        <div class="alert as mb2"><span>✅</span> Fonctionne sans clé API — génération automatique basée sur vos données réelles.</div>
+        <div class="dg">
+          <div class="dc sel" data-doc="memoire" onclick="selDoc(this)"><div class="dci">🧾</div><div class="dcn">Mémoire complet</div><div class="dcd">Intro → Conclusion</div></div>
+          <div class="dc" data-doc="protocole" onclick="selDoc(this)"><div class="dci">📑</div><div class="dcn">Protocole</div><div class="dcd">Problématique, méthode</div></div>
+          <div class="dc" data-doc="slides" onclick="selDoc(this)"><div class="dci">📊</div><div class="dcn">Plan présentation</div><div class="dcd">12 slides commentées</div></div>
+        </div>
+        <div class="card mb2">
+          <div class="ct" style="margin-bottom:13px;">📝 Informations de l'étude</div>
+          <div class="g2">
+            <div class="tf"><label>Titre de l'étude</label><input type="text" id="doc-title" placeholder="Analyse de la prévalence du diabète..."></div>
+            <div class="tf"><label>Auteurs</label><input type="text" id="doc-authors" placeholder="Dr. Diallo A., Pr. Koné B."></div>
+            <div class="tf"><label>Institution</label><input type="text" id="doc-inst" placeholder="Université d'Abomey-Calavi"></div>
+            <div class="tf"><label>Année</label><input type="text" id="doc-year" placeholder="2024"></div>
+          </div>
+        </div>
+        <div class="flex mb2">
+          <button class="btn bp" style="font-size:0.92rem;padding:11px 22px;" onclick="generateDoc()">📄 Générer le document</button>
+          <button class="btn bs hidden" id="btn-dl-txt" onclick="downloadTxt()">📥 Télécharger (.txt)</button>
+          <button class="btn bs hidden" id="btn-dl-word" onclick="downloadDocWord()">📝 Télécharger Word</button>
+        </div>
+        <div id="doc-prev-wrap" class="hidden">
+          <div class="ct" style="margin-bottom:8px;">Aperçu du document</div>
+          <div class="doc-prev" id="doc-prev"></div>
+        </div>
+      </div>
+
+      <!-- À PROPOS -->
+      <div class="view" id="v-about">
+        <div class="ph"><h1 class="ptitle">ℹ️ À propos de DataSciLab</h1></div>
+        <div class="g2 mb2">
+          <div class="card"><div style="font-size:2.2rem;margin-bottom:12px;">🧬</div><div style="font-family:var(--serif);font-size:1.2rem;margin-bottom:10px;">Notre Mission</div><p style="font-size:0.84rem;color:var(--text2);line-height:1.8;">DataSciLab rend l'analyse statistique et scientifique accessible à tous — étudiants, chercheurs et professionnels de santé. Gratuitement, sans compromis sur la qualité.</p></div>
+          <div class="card"><div style="font-size:2.2rem;margin-bottom:12px;">🌍</div><div style="font-family:var(--serif);font-size:1.2rem;margin-bottom:10px;">Notre Vision</div><p style="font-size:0.84rem;color:var(--text2);line-height:1.8;">Devenir la plateforme de référence en analyse de données scientifiques pour les pays francophones, en éliminant les barrières financières et techniques qui freinent la recherche.</p></div>
+        </div>
+        <div class="card mb2">
+          <div style="font-family:var(--serif);font-size:1.15rem;margin-bottom:14px;">⚖️ Modèle économique transparent</div>
+          <div class="g2">
+            <div style="font-size:0.84rem;color:var(--text2);line-height:2;">DataSciLab est <strong style="color:var(--green)">100% gratuit</strong>.<br>Financé par :<br>🎓 Partenariats universitaires<br>🌍 Subventions et ONG<br>🏛️ Versions institutionnelles</div>
+            <div><div class="alert as">✅ Aucune publicité. Vos données ne sont jamais vendues.</div><div class="alert ai" style="margin-top:8px">💡 Fonctionne sans clé API ni abonnement.</div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div style="font-family:var(--serif);font-size:1.15rem;margin-bottom:14px;">🚀 Ce que vous pouvez faire</div>
+          <div class="g2" style="font-size:0.84rem;color:var(--text2);line-height:2.2;">
+            <div>✅ Import CSV & Excel<br>✅ 6 tests statistiques complets<br>✅ Graphiques interactifs<br>✅ Boxplot automatique</div>
+            <div>✅ Interprétation automatique<br>✅ Génération de documents<br>✅ Export CSV, Word, PNG<br>✅ Compatible mobile</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CONTACT -->
+      <div class="view" id="v-contact">
+        <div class="ph"><h1 class="ptitle">📞 Contact</h1><p class="psub">Besoin d'aide ? Contactez-nous directement.</p></div>
+        <div class="g2 mb2">
+          <div>
+            <a href="https://wa.me/2290197545389" target="_blank" class="contact-btn"><span style="font-size:1.8rem">💬</span><div><div style="font-size:0.7rem;color:var(--text3);font-family:var(--mono);text-transform:uppercase;letter-spacing:0.05em;">WhatsApp</div><div style="font-size:0.95rem;font-weight:600">+229 0197545389</div></div><span style="margin-left:auto;color:var(--accent)">→</span></a>
+            <a href="mailto:moufsiakou1@gmail.com" class="contact-btn"><span style="font-size:1.8rem">📧</span><div><div style="font-size:0.7rem;color:var(--text3);font-family:var(--mono);text-transform:uppercase;letter-spacing:0.05em;">Email</div><div style="font-size:0.95rem;font-weight:600">moufsiakou1@gmail.com</div></div><span style="margin-left:auto;color:var(--accent)">→</span></a>
+          </div>
+          <div class="card">
+            <div class="ct" style="margin-bottom:13px;">💌 Formulaire de contact</div>
+            <div class="fg"><label>Votre nom</label><input type="text" class="fi" id="c-name" placeholder="Votre nom"></div>
+            <div class="fg"><label>Message</label><textarea class="fi" id="c-msg" style="resize:vertical;min-height:90px;" placeholder="Votre message..."></textarea></div>
+            <button class="btn bp" onclick="sendContact()">📤 Envoyer via WhatsApp</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- FAQ -->
+      <div class="view" id="v-faq">
+        <div class="ph"><h1 class="ptitle">❓ Questions fréquentes</h1></div>
+        <div id="faq-list"></div>
+      </div>
+
+      <!-- CONFIDENTIALITÉ -->
+      <div class="view" id="v-privacy">
+        <div class="ph"><h1 class="ptitle">🔒 Politique de confidentialité</h1></div>
+        <div class="card mb2"><div style="font-family:var(--serif);font-size:1.05rem;margin-bottom:10px;color:var(--accent)">1. Stockage des données</div><p style="font-size:0.84rem;color:var(--text2);line-height:1.85;">Toutes vos données sont stockées <strong>uniquement dans votre navigateur</strong> via localStorage. Aucune donnée n'est transmise à des serveurs.</p></div>
+        <div class="card mb2"><div style="font-family:var(--serif);font-size:1.05rem;margin-bottom:10px;color:var(--accent)">2. Fichiers importés</div><p style="font-size:0.84rem;color:var(--text2);line-height:1.85;">Vos fichiers CSV/Excel sont traités <strong>entièrement dans votre navigateur</strong>. Ils ne sont jamais envoyés à des serveurs tiers.</p></div>
+        <div class="card mb2"><div style="font-family:var(--serif);font-size:1.05rem;margin-bottom:10px;color:var(--accent)">3. Pas de tracking</div><p style="font-size:0.84rem;color:var(--text2);line-height:1.85;">DataSciLab ne contient aucune publicité et n'utilise aucun outil de tracking.</p></div>
+        <div class="card"><div style="font-family:var(--serif);font-size:1.05rem;margin-bottom:10px;color:var(--accent)">4. Vos droits</div><p style="font-size:0.84rem;color:var(--text2);line-height:1.85;">Supprimez toutes vos données depuis Paramètres → "Tout supprimer". Contact : <strong>moufsiakou1@gmail.com</strong></p></div>
+      </div>
+
+      <!-- NEWSLETTER -->
+      <div class="view" id="v-newsletter">
+        <div class="ph"><h1 class="ptitle">📬 Newsletter</h1></div>
+        <div class="nl-box mb2">
+          <div class="nl-title">🚀 Restez informé des nouveautés</div>
+          <p style="font-size:0.83rem;color:var(--text2);">Nouvelles fonctionnalités, tutoriels statistiques et ressources scientifiques.</p>
+          <div class="nl-form">
+            <input type="email" id="nl-email" placeholder="votre@email.com">
+            <button class="btn bp" onclick="subscribeNL()">S'abonner →</button>
+          </div>
+          <div id="nl-msg" class="hidden" style="margin-top:12px;"></div>
+        </div>
+        <div class="card">
+          <div class="ct" style="margin-bottom:10px;">Ce que vous recevrez</div>
+          <div style="font-size:0.84rem;color:var(--text2);line-height:2.2;">
+            ✅ Nouvelles fonctionnalités DataSciLab<br>
+            ✅ Tutoriels sur les analyses statistiques<br>
+            ✅ Ressources scientifiques et articles<br>
+            ✅ Conseils pour améliorer vos travaux<br>
+            ✅ Actualités recherche en Afrique francophone
+          </div>
+        </div>
+      </div>
+
+      <!-- PARAMÈTRES -->
+      <div class="view" id="v-settings">
+        <div class="ph"><h1 class="ptitle">⚙️ Paramètres</h1></div>
+        <div class="sset">
+          <div class="sset-t">👤 Mon profil</div>
+          <div class="card" style="max-width:500px;">
+            <div class="fg"><label>Nom complet</label><input type="text" class="fi" id="p-name"></div>
+            <div class="fg"><label>Institution</label><input type="text" class="fi" id="p-inst"></div>
+            <div class="fg"><label>Question secrète</label><select class="fi" id="p-q"><option>Prénom de votre mère ?</option><option>Ville de naissance ?</option><option>Nom de votre école primaire ?</option><option>Surnom d'enfance ?</option><option>Plat préféré ?</option></select></div>
+            <div class="fg"><label>Nouvelle réponse (laisser vide pour ne pas changer)</label><input type="text" class="fi" id="p-ans" placeholder="Nouvelle réponse secrète"></div>
+            <button class="btn bp" onclick="saveProfile()">💾 Enregistrer</button>
+          </div>
+        </div>
+        <div class="sset">
+          <div class="sset-t">🎨 Apparence</div>
+          <div class="card" style="max-width:500px;">
+            <div class="fg"><label>Taille de police</label>
+              <select class="fi" id="fs-sel" onchange="setFS(this.value)">
+                <option value="normal">Normale</option>
+                <option value="small">Petite</option>
+                <option value="large">Grande</option>
+              </select>
+            </div>
+            <div class="flex">
+              <button class="btn bs" onclick="toggleTheme()">🌙 Basculer thème</button>
+              <button class="btn bs" onclick="toggleLang()">🌍 Changer langue</button>
+            </div>
+          </div>
+        </div>
+        <div class="sset">
+          <div class="sset-t">🗑️ Gestion des données</div>
+          <div class="card" style="max-width:500px;">
+            <p style="font-size:0.83rem;color:var(--text2);margin-bottom:14px;">Supprimer définitivement toutes vos données locales.</p>
+            <button class="btn bd" onclick="confirmDel('all')">🗑️ Tout supprimer</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 404 -->
+      <div class="view" id="v-404">
+        <div class="p404">
+          <div class="p404-num">404</div>
+          <div style="font-size:1.2rem;font-weight:700;margin-bottom:8px;">Page introuvable</div>
+          <div style="font-size:0.84rem;color:var(--text3);margin-bottom:24px;">La page que vous cherchez n'existe pas.</div>
+          <button class="btn bp" onclick="nav('dashboard')">🏠 Tableau de bord</button>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- MODALS -->
+<div class="modal-ov" id="confirm-modal">
+  <div class="modal" style="border-top:3px solid var(--red);">
+    <div class="modal-title" id="conf-title">🗑️ Confirmer la suppression</div>
+    <div class="modal-sub" id="conf-msg">Cette action est irréversible.</div>
+    <div class="flex">
+      <button class="btn bd" id="conf-ok">🗑️ Confirmer</button>
+      <button class="btn bs" onclick="closeModal()">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<!-- TUTORIAL -->
+<div id="tutorial">
+  <div class="tut-box">
+    <div class="tut-step" id="tut-step">ÉTAPE 1 / 6</div>
+    <div class="tut-icon" id="tut-icon">🎉</div>
+    <div class="tut-title" id="tut-title">Bienvenue sur DataSciLab !</div>
+    <div class="tut-desc" id="tut-desc">La plateforme d'analyse scientifique 100% gratuite et sans clé API.</div>
+    <div class="tut-dots" id="tut-dots"></div>
+    <div class="flex" style="justify-content:center;">
+      <button class="btn bs" onclick="closeTut()">Passer</button>
+      <button class="btn bp" id="tut-next" onclick="nextTut()">Suivant →</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST & AUTOSAVE -->
+<div id="toast"></div>
+<div id="autosave-ind">✓ Sauvegardé</div>
+
+<script>
+// ══════════════════════════════════════════
+// VARIABLES GLOBALES
+// ══════════════════════════════════════════
+const S={dataset:null,results:null,results2:null,aType:'descriptive',aC:0,docContent:'',docType:'memoire',chart:null,history:[],notes:'',theme:{}};
+let theme_='dark', lang_='fr', _fails={}, _logoutT, _sessionI, _sessionLeft=1800;
+
+// ══════════════════════════════════════════
+// TOAST
+// ══════════════════════════════════════════
+let _tt;
+function toast(msg,t='ts'){const el=document.getElementById('toast');el.textContent=msg;el.className=`${t} show`;clearTimeout(_tt);_tt=setTimeout(()=>el.className='',3500);}
+
+// ══════════════════════════════════════════
+// AUTOSAVE
+// ══════════════════════════════════════════
+function showAS(){const el=document.getElementById('autosave-ind');el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2000);}
+
+// ══════════════════════════════════════════
+// THEME
+// ══════════════════════════════════════════
+function applyTheme(){
+  document.documentElement.setAttribute('data-theme',theme_);
+  const d=theme_==='dark';
+  document.getElementById('theme-btn').innerHTML=d?'🌙 Sombre':'☀️ Clair';
+  const m=document.getElementById('theme-btn-m');if(m)m.textContent=d?'🌙':'☀️';
+}
+function toggleTheme(){theme_=theme_==='dark'?'light':'dark';localStorage.setItem('dsl_theme',theme_);applyTheme();}
+
+// ══════════════════════════════════════════
+// LANG
+// ══════════════════════════════════════════
+function toggleLang(){lang_=lang_==='fr'?'en':'fr';localStorage.setItem('dsl_lang',lang_);document.getElementById('lang-btn').textContent=lang_==='fr'?'EN':'FR';const m=document.getElementById('lang-btn-m');if(m)m.textContent=lang_==='fr'?'EN':'FR';}
+
+// ══════════════════════════════════════════
+// FONT SIZE
+// ══════════════════════════════════════════
+function setFS(v){document.documentElement.setAttribute('data-fs',v);document.body.style.fontSize=v==='small'?'13px':v==='large'?'17px':'15px';localStorage.setItem('dsl_fs',v);const s=document.getElementById('fs-sel');if(s)s.value=v;}
+
+// ══════════════════════════════════════════
+// AUTH
+// ══════════════════════════════════════════
+const DEMO={id:'demo',email:'demo@datascilab.com',name:'Utilisateur Démo',institution:'DataSciLab',password:btoa('demo1234'),question:'Prénom de votre mère ?',answer:btoa('demo')};
+function getUsers(){return JSON.parse(localStorage.getItem('dsl_users')||'[]');}
+function saveUsers(u){localStorage.setItem('dsl_users',JSON.stringify(u));}
+function getCurrent(){return JSON.parse(localStorage.getItem('dsl_current')||'null');}
+function setCurrent(u){localStorage.setItem('dsl_current',JSON.stringify(u));}
+
+function authTab(t){
+  document.querySelectorAll('.auth-tab').forEach((el,i)=>el.classList.toggle('active',['login','register','forgot'][i]===t));
+  document.querySelectorAll('.auth-panel').forEach(el=>el.classList.remove('active'));
+  document.getElementById('p-'+t).classList.add('active');
+}
+
+function showErr(id,msg){const el=document.getElementById(id);el.textContent=msg;el.classList.add('show');}
+function hideErr(id){document.getElementById(id).classList.remove('show');}
+
+function checkPw(v){
+  const f=document.getElementById('pw-fill'),l=document.getElementById('pw-lbl');
+  if(!v){f.style.width='0%';l.textContent='Saisissez un mot de passe';return;}
+  let s=0;if(v.length>=8)s++;if(v.length>=12)s++;if(/[A-Z]/.test(v))s++;if(/[0-9]/.test(v))s++;if(/[^A-Za-z0-9]/.test(v))s++;
+  const lvl=[['0%','',''],['25%','#f87171','Faible'],['50%','#fb923c','Moyen'],['75%','#f59e0b','Bon'],['100%','#34d399','Fort'],['100%','#34d399','Très fort']];
+  const[w,c,tx]=lvl[Math.min(s,5)];f.style.width=w;f.style.background=c;l.textContent=tx;l.style.color=c;
+}
+
+function login(){
+  const email=document.getElementById('l-email').value.trim(),pass=document.getElementById('l-pass').value;
+  hideErr('l-err');
+  if(!email||!pass)return showErr('l-err','Remplissez tous les champs');
+  const fails=_fails[email]||0;
+  if(fails>=5)return showErr('l-err','Compte bloqué après 5 tentatives.');
+  if(email===DEMO.email&&pass==='demo1234'){_fails[email]=0;setCurrent({...DEMO,password:undefined,answer:undefined});return launch(DEMO);}
+  const user=getUsers().find(u=>u.email===email&&u.password===btoa(pass));
+  if(!user){_fails[email]=fails+1;return showErr('l-err',`Incorrect. Tentative ${_fails[email]}/5`);}
+  _fails[email]=0;setCurrent({id:user.id,email:user.email,name:user.name,institution:user.institution,question:user.question});launch(user);
+}
+
+function register(){
+  const name=document.getElementById('r-name').value.trim(),email=document.getElementById('r-email').value.trim(),inst=document.getElementById('r-inst').value.trim(),pass=document.getElementById('r-pass').value,pass2=document.getElementById('r-pass2').value,q=document.getElementById('r-q').value,ans=document.getElementById('r-ans').value.trim();
+  hideErr('r-err');
+  if(!name||!email||!pass||!q||!ans)return showErr('r-err','Remplissez les champs obligatoires (*)');
+  if(!/\S+@\S+\.\S+/.test(email))return showErr('r-err','Email invalide');
+  if(pass.length<8)return showErr('r-err','Mot de passe : minimum 8 caractères');
+  if(pass!==pass2)return showErr('r-err','Les mots de passe ne correspondent pas');
+  const users=getUsers();
+  if(users.find(u=>u.email===email))return showErr('r-err','Cet email est déjà utilisé');
+  const user={id:Date.now().toString(),email,name,institution:inst,password:btoa(pass),question:q,answer:btoa(ans.toLowerCase())};
+  users.push(user);saveUsers(users);
+  setCurrent({id:user.id,email,name,institution:inst,question:q});launch(user);
+  setTimeout(()=>startTut(),600);
+}
+
+function forgotS1(){
+  const email=document.getElementById('f-email').value.trim();
+  if(!email)return toast('Saisissez votre email','te');
+  const user=getUsers().find(u=>u.email===email);
+  if(!user)return toast('Email non trouvé','te');
+  document.getElementById('f-qlbl').textContent=user.question;
+  document.getElementById('f-s1').classList.add('hidden');
+  const s2=document.getElementById('f-s2');s2.classList.remove('hidden');s2.dataset.uid=user.id;
+}
+function forgotS2(){
+  const uid=document.getElementById('f-s2').dataset.uid,ans=document.getElementById('f-ans').value.trim().toLowerCase(),np=document.getElementById('f-np').value;
+  hideErr('f-err');
+  const users=getUsers(),idx=users.findIndex(u=>u.id===uid);
+  if(idx===-1)return showErr('f-err','Utilisateur introuvable');
+  if(btoa(ans)!==users[idx].answer)return showErr('f-err','Réponse incorrecte');
+  if(np.length<8)return showErr('f-err','Mot de passe trop court (min. 8)');
+  users[idx].password=btoa(np);saveUsers(users);
+  toast('✅ Mot de passe réinitialisé !','ts');authTab('login');
+  document.getElementById('f-s1').classList.remove('hidden');document.getElementById('f-s2').classList.add('hidden');
+}
+
+function launch(user){
+  document.getElementById('auth-screen').style.display='none';
+  document.getElementById('app').style.display='block';
+  const ini=user.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+  document.getElementById('sb-av').textContent=ini;
+  document.getElementById('sb-name').textContent=user.name;
+  document.getElementById('sb-inst').textContent=user.institution||'DataSciLab';
+  document.getElementById('dash-name').textContent=user.name.split(' ')[0];
+  document.getElementById('p-name').value=user.name;
+  document.getElementById('p-inst').value=user.institution||'';
+  loadState();applyTheme();
+  const fs=localStorage.getItem('dsl_fs')||'normal';setFS(fs);
+  theme_=localStorage.getItem('dsl_theme')||'dark';applyTheme();
+  lang_=localStorage.getItem('dsl_lang')||'fr';
+  document.getElementById('lang-btn').textContent=lang_==='fr'?'EN':'FR';
+  updateDash();renderHist();renderFAQ();
+  setupAutoLogout();
+  setInterval(()=>{if(getCurrent())saveState();},120000);
+}
+
+function logout(){
+  localStorage.removeItem('dsl_current');
+  document.getElementById('app').style.display='none';
+  document.getElementById('auth-screen').style.display='flex';
+  clearInterval(_sessionI);clearTimeout(_logoutT);
+}
+
+// ══════════════════════════════════════════
+// SESSION TIMER
+// ══════════════════════════════════════════
+function setupAutoLogout(){
+  clearTimeout(_logoutT);clearInterval(_sessionI);
+  _sessionLeft=1800;
+  _logoutT=setTimeout(()=>{toast('Session expirée.','te');setTimeout(logout,1500);},1800000);
+  _sessionI=setInterval(()=>{
+    _sessionLeft--;
+    const m=Math.floor(_sessionLeft/60),s=_sessionLeft%60;
+    const el=document.getElementById('sb-timer');
+    if(el){el.textContent=`⏱ ${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;el.style.color=_sessionLeft<=300?'var(--orange)':_sessionLeft<=60?'var(--red)':'var(--text3)';}
+  },1000);
+}
+['click','keypress','mousemove'].forEach(e=>document.addEventListener(e,()=>{if(getCurrent())setupAutoLogout();},{passive:true}));
+
+// ══════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════
+function nav(v){
+  document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.nb').forEach(el=>el.classList.remove('active'));
+  const el=document.getElementById('v-'+v)||(v?document.getElementById('v-404'):null);
+  if(el)el.classList.add('active');
+  const map={dashboard:0,theme:1,import:2,analyse:3,resultats:4,documents:5,about:6,contact:7,faq:8,privacy:9,newsletter:10,settings:11};
+  const nbs=document.querySelectorAll('.nb');if(nbs[map[v]])nbs[map[v]].classList.add('active');
+  if(v==='analyse')updateAnalyseView();
+  if(v==='import')checkThemeW();
+  if(v==='resultats'&&S.results){renderResults(S.results,false);addBoxplotBtn();}
+  document.getElementById('sidebar').classList.remove('open');
+}
+function toggleSB(){document.getElementById('sidebar').classList.toggle('open');}
+
+// ══════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════
+function saveState(){
+  const u=getCurrent();if(!u)return;
+  localStorage.setItem('dsl_s_'+u.id,JSON.stringify({history:S.history,notes:S.notes,theme:S.theme,aC:S.aC}));
+  showAS();
+}
+function loadState(){
+  const u=getCurrent();if(!u)return;
+  const d=JSON.parse(localStorage.getItem('dsl_s_'+u.id)||'{}');
+  S.history=d.history||[];S.notes=d.notes||'';S.theme=d.theme||{};S.aC=d.aC||0;
+  document.getElementById('notes-a').value=S.notes;
+  if(S.theme.theme)document.getElementById('th-theme').value=S.theme.theme||'';
+  if(S.theme.obj)document.getElementById('th-obj').value=S.theme.obj||'';
+  if(S.theme.pop)document.getElementById('th-pop').value=S.theme.pop||'';
+  if(S.theme.period)document.getElementById('th-period').value=S.theme.period||'';
+  if(S.theme.lieu)document.getElementById('th-lieu').value=S.theme.lieu||'';
+  if(S.theme.type)document.getElementById('th-type').value=S.theme.type||'';
+  if(S.theme.desc)document.getElementById('th-desc').value=S.theme.desc||'';
+}
+function saveNotes(){S.notes=document.getElementById('notes-a').value;saveState();}
+
+// ══════════════════════════════════════════
+// THEME RESEARCH
+// ══════════════════════════════════════════
+function saveTheme(){
+  S.theme={theme:document.getElementById('th-theme').value.trim(),obj:document.getElementById('th-obj').value.trim(),pop:document.getElementById('th-pop').value.trim(),period:document.getElementById('th-period').value.trim(),lieu:document.getElementById('th-lieu').value.trim(),type:document.getElementById('th-type').value,desc:document.getElementById('th-desc').value.trim()};
+  if(!S.theme.theme)return toast('Saisissez au moins le thème de recherche','te');
+  saveState();
+  document.getElementById('th-status').innerHTML='<div class="alert as"><span>✅</span> Thème enregistré : <strong>'+S.theme.theme+'</strong></div>';
+  document.getElementById('th-status').classList.remove('hidden');
+  toast('✅ Thème enregistré !','ts');
+}
+function clearTheme(){
+  S.theme={};saveState();
+  ['th-theme','th-obj','th-pop','th-period','th-lieu','th-desc'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('th-type').value='';document.getElementById('th-status').classList.add('hidden');
+  toast('Thème effacé','ts');
+}
+function checkThemeW(){document.getElementById('no-theme-w').classList.toggle('hidden',!!(S.theme&&S.theme.theme));}
+
+// ══════════════════════════════════════════
+// DASHBOARD
+// ══════════════════════════════════════════
+function updateDash(){
+  document.getElementById('d-files').textContent=S.dataset?1:0;
+  document.getElementById('d-analyses').textContent=S.aC;
+  document.getElementById('d-vars').textContent=S.dataset?S.dataset.columns.length:'—';
+  document.getElementById('d-rows').textContent=S.dataset?S.dataset.rows.length:'—';
+  const dd=document.getElementById('dash-ds');
+  if(S.dataset){
+    const nc=S.dataset.columns.filter(c=>S.dataset.types[c]==='quantitative').length,cc=S.dataset.columns.length-nc;
+    dd.innerHTML=`<div style="font-size:0.83rem;color:var(--text2);line-height:2.2">📂 <strong style="color:var(--text)">${S.dataset.name}</strong><br>📐 ${S.dataset.rows.length} obs × ${S.dataset.columns.length} variables<br>🔢 ${nc} quantitatives | 🏷️ ${cc} qualitatives${S.theme?.theme?`<br>🎯 Thème : <strong>${S.theme.theme}</strong>`:''}</div><div style="margin-top:9px"><button class="btn btn-sm bp" onclick="nav('analyse')">📊 Analyser</button></div>`;
+  }else{dd.innerHTML='<div class="empty"><div class="ei">📂</div><div class="et">Aucun fichier chargé</div><div class="es">Importez un fichier CSV ou Excel.</div></div>';}
+  // Theme badge in analyse
+  const tb=document.getElementById('theme-badge');
+  if(tb&&S.theme?.theme){tb.style.display='flex';document.getElementById('tb-txt').textContent=`Thème : "${S.theme.theme}" — ${S.theme.obj||''}`;}
+  else if(tb)tb.style.display='none';
+}
+
+// ══════════════════════════════════════════
+// FILE UPLOAD
+// ══════════════════════════════════════════
+window.addEventListener('DOMContentLoaded',()=>{
+  const u=getCurrent();if(u){const users=getUsers();const full=users.find(x=>x.id===u.id)||DEMO;launch(full);}
+  const z=document.getElementById('upload-z');
+  z.addEventListener('dragover',e=>{e.preventDefault();z.classList.add('over');});
+  z.addEventListener('dragleave',()=>z.classList.remove('over'));
+  z.addEventListener('drop',e=>{e.preventDefault();z.classList.remove('over');if(e.dataTransfer.files[0])handleFile(e.dataTransfer.files[0]);});
+  updateVarCfg();
+});
+
+function handleFile(file){
+  if(!file)return;
+  const ext=file.name.split('.').pop().toLowerCase();
+  if(!['csv','xlsx','xls'].includes(ext))return toast('Format non supporté. Utilisez CSV ou Excel','te');
+  document.getElementById('import-prog').classList.remove('hidden');
+  let p=0;const fill=document.getElementById('pbar');
+  const pi=setInterval(()=>{p=Math.min(p+Math.random()*15,90);fill.style.width=p+'%';},200);
+  const done=(data,name)=>{clearInterval(pi);fill.style.width='100%';setTimeout(()=>{document.getElementById('import-prog').classList.add('hidden');buildDS(data,name);},400);};
+  if(ext==='csv'){
+    Papa.parse(file,{header:true,skipEmptyLines:true,complete:r=>done(r.data,file.name),error:()=>{clearInterval(pi);document.getElementById('import-prog').classList.add('hidden');toast('Erreur CSV','te');}});
+  }else{
+    const rd=new FileReader();
+    rd.onload=e=>{try{const wb=XLSX.read(e.target.result,{type:'binary'});const ws=wb.Sheets[wb.SheetNames[0]];done(XLSX.utils.sheet_to_json(ws,{defval:null}),file.name);}catch(err){clearInterval(pi);document.getElementById('import-prog').classList.add('hidden');toast('Erreur Excel : '+err.message,'te');}};
+    rd.readAsBinaryString(file);
+  }
+}
+
+function buildDS(data,name){
+  if(!data.length)return toast('Fichier vide','te');
+  const cols=Object.keys(data[0]),rows=data.map(r=>cols.map(c=>r[c])),types={},nulls={},outs={};
+  cols.forEach((col,ci)=>{
+    let nc=0;
+    const vals=rows.map(r=>r[ci]).filter(v=>{if(v===null||v===undefined||v===''||String(v).toUpperCase()==='NA'){nc++;return false;}return true;});
+    nulls[col]=nc;
+    const nv=vals.filter(v=>!isNaN(parseFloat(v))&&isFinite(v)).length;
+    types[col]=vals.length>0&&nv/vals.length>0.75?'quantitative':'qualitative';
+    if(types[col]==='quantitative'){
+      const nums=vals.map(Number).sort((a,b)=>a-b);
+      const q1=nums[Math.floor(nums.length*0.25)],q3=nums[Math.floor(nums.length*0.75)],iqr=q3-q1;
+      outs[col]=nums.filter(v=>v<q1-1.5*iqr||v>q3+1.5*iqr).length;
+    }else outs[col]=0;
+  });
+  S.dataset={name,columns:cols,rows,types,nulls,outliers:outs};
+  renderImport();updateDash();updateVarCfg();
+  toast(`✅ "${name}" — ${rows.length} lignes, ${cols.length} variables`,'ts');
+}
+
+function renderImport(){
+  const{name,columns,rows,types,nulls,outliers}=S.dataset;
+  document.getElementById('import-res').classList.remove('hidden');
+  document.getElementById('import-msg').textContent=`"${name}" — ${rows.length} lignes, ${columns.length} colonnes`;
+  let h=`<div class="tw"><table><thead><tr><th>#</th><th>Variable</th><th>Type</th><th>Manquants</th><th>Outliers</th><th>Exemple</th></tr></thead><tbody>`;
+  columns.forEach((col,ci)=>{const ex=rows.find(r=>r[ci]!==null&&r[ci]!==''&&r[ci]!==undefined)?.[ci]??'—';h+=`<tr><td style="color:var(--text3)">${ci+1}</td><td style="font-weight:600">${col}</td><td><span class="tbadge ${types[col]==='quantitative'?'tnum':'tcat'}">${types[col]}</span></td><td style="color:${nulls[col]>0?'var(--orange)':'var(--green)'}">${nulls[col]}</td><td style="color:${outliers[col]>0?'var(--red)':'var(--green)'}">${outliers[col]}</td><td style="color:var(--text3);font-size:0.74rem">${String(ex).slice(0,22)}</td></tr>`;});
+  document.getElementById('cols-tbl').innerHTML=h+'</tbody></table></div>';
+  const hm=Object.values(nulls).some(v=>v>0)||Object.values(outliers).some(v=>v>0);
+  document.getElementById('missing-c').innerHTML=hm?`<div class="tw"><table><thead><tr><th>Variable</th><th>Manquants</th><th>%</th><th>Outliers</th></tr></thead><tbody>${columns.filter(c=>nulls[c]>0||outliers[c]>0).map(c=>`<tr><td>${c}</td><td style="color:var(--orange);font-family:var(--mono)">${nulls[c]}</td><td style="font-family:var(--mono)">${(nulls[c]/rows.length*100).toFixed(1)}%</td><td style="color:${outliers[c]>0?'var(--red)':'var(--green)'};font-family:var(--mono)">${outliers[c]}</td></tr>`).join('')}</tbody></table></div>`:'<div class="alert as"><span>✅</span> Aucune valeur manquante ni outlier détecté.</div>';
+  let p=`<table><thead><tr>${columns.map(c=>`<th>${c}</th>`).join('')}</tr></thead><tbody>`;
+  rows.slice(0,10).forEach(r=>{p+=`<tr>${r.map((v,i)=>v===null||v===''||v===undefined?'<td class="tnull">—</td>':types[columns[i]]==='quantitative'?`<td class="tn">${v}</td>`:`<td class="tc">${String(v).slice(0,18)}</td>`).join('')}</tr>`;});
+  document.getElementById('preview-tbl').innerHTML=p+'</tbody></table>';
+}
+
+// ══════════════════════════════════════════
+// STATISTIQUES
+// ══════════════════════════════════════════
+const ST={
+  clean:a=>a.map(Number).filter(v=>!isNaN(v)&&isFinite(v)),
+  mean:a=>a.reduce((s,v)=>s+v,0)/a.length,
+  median:a=>{const s=[...a].sort((x,y)=>x-y),m=Math.floor(s.length/2);return s.length%2?s[m]:(s[m-1]+s[m])/2;},
+  std:a=>{if(a.length<2)return 0;const m=ST.mean(a);return Math.sqrt(a.reduce((s,v)=>s+Math.pow(v-m,2),0)/(a.length-1));},
+  min:a=>Math.min(...a),max:a=>Math.max(...a),
+  q1:a=>{const s=[...a].sort((x,y)=>x-y);return ST.median(s.slice(0,Math.floor(s.length/2)));},
+  q3:a=>{const s=[...a].sort((x,y)=>x-y);return ST.median(s.slice(Math.ceil(s.length/2)));},
+  skew:a=>{const m=ST.mean(a),s=ST.std(a),n=a.length;if(!s||n<3)return 0;return(n/((n-1)*(n-2)))*a.reduce((acc,v)=>acc+Math.pow((v-m)/s,3),0);},
+  pearson:(x,y)=>{const mx=ST.mean(x),my=ST.mean(y),num=x.reduce((s,v,i)=>s+(v-mx)*(y[i]-my),0),den=Math.sqrt(x.reduce((s,v)=>s+Math.pow(v-mx,2),0)*y.reduce((s,v)=>s+Math.pow(v-my,2),0));return den?num/den:0;},
+  getNum:col=>{const ci=S.dataset.columns.indexOf(col);return ST.clean(S.dataset.rows.map(r=>r[ci]).filter(v=>v!==null&&v!==''&&v!==undefined));},
+  getAll:col=>{const ci=S.dataset.columns.indexOf(col);return S.dataset.rows.map(r=>r[ci]).filter(v=>v!==null&&v!==''&&v!==undefined).map(String);}
+};
+const pT=(t,df)=>typeof jStat!=='undefined'?2*(1-jStat.studentt.cdf(Math.abs(t),df)):0.05;
+const pF=(F,d1,d2)=>typeof jStat!=='undefined'?1-jStat.centralF.cdf(F,d1,d2):0.05;
+const pChi=(c,df)=>typeof jStat!=='undefined'?1-jStat.chisquare.cdf(c,df):0.05;
+const fmt=(v,d=4)=>isNaN(v)||v===undefined?'—':Number(v).toFixed(d);
+const pFmt=p=>{const pv=parseFloat(p);return pv<0.001?'< 0.001':fmt(pv,4);};
+
+function doDesc(col){const d=ST.getNum(col);if(d.length<2)return null;return{type:'descriptive',col,n:d.length,mean:fmt(ST.mean(d)),median:fmt(ST.median(d)),std:fmt(ST.std(d)),variance:fmt(Math.pow(ST.std(d),2)),min:fmt(ST.min(d)),max:fmt(ST.max(d)),q1:fmt(ST.q1(d)),q3:fmt(ST.q3(d)),iqr:fmt(ST.q3(d)-ST.q1(d)),skewness:fmt(ST.skew(d),3),data:d};}
+
+function doTTest(col,gcol){
+  const ci=S.dataset.columns.indexOf(col),gi=S.dataset.columns.indexOf(gcol),groups={};
+  S.dataset.rows.forEach(r=>{const g=String(r[gi]),v=r[ci];if(v!==null&&v!==''&&v!==undefined&&!isNaN(Number(v))){groups[g]=groups[g]||[];groups[g].push(Number(v));}});
+  const keys=Object.keys(groups);if(keys.length<2)return{error:'La variable de groupe doit avoir ≥2 catégories'};
+  const[g1,g2]=[groups[keys[0]],groups[keys[1]]],m1=ST.mean(g1),m2=ST.mean(g2),s1=ST.std(g1),s2=ST.std(g2),n1=g1.length,n2=g2.length;
+  const se=Math.sqrt(s1*s1/n1+s2*s2/n2);if(!se)return{error:'Variance nulle'};
+  const t=(m1-m2)/se,df=Math.pow(s1*s1/n1+s2*s2/n2,2)/(Math.pow(s1*s1/n1,2)/(n1-1)+Math.pow(s2*s2/n2,2)/(n2-1)),p=pT(t,df),d2=(s1+s2)>0?(m1-m2)/Math.sqrt((s1*s1+s2*s2)/2):0;
+  return{type:'ttest',col,gcol,g1,g2,keys,n1,n2,t:fmt(t),df:Math.round(df),p:pFmt(p),pRaw:p,m1:fmt(m1,3),m2:fmt(m2,3),s1:fmt(s1,3),s2:fmt(s2,3),d:fmt(d2,3)};
+}
+
+function doAnova(col,gcol){
+  const ci=S.dataset.columns.indexOf(col),gi=S.dataset.columns.indexOf(gcol),groups={};
+  S.dataset.rows.forEach(r=>{const g=String(r[gi]),v=r[ci];if(v!==null&&v!==''&&v!==undefined&&!isNaN(Number(v))){groups[g]=groups[g]||[];groups[g].push(Number(v));}});
+  const keys=Object.keys(groups);if(keys.length<3)return{error:'L\'ANOVA nécessite ≥3 groupes'};
+  const k=keys.length,N=keys.reduce((s,k2)=>s+groups[k2].length,0),gm=ST.mean(keys.flatMap(k2=>groups[k2]));
+  const ssB=keys.reduce((s,k2)=>s+groups[k2].length*Math.pow(ST.mean(groups[k2])-gm,2),0),ssW=keys.reduce((s,k2)=>s+groups[k2].reduce((b,v)=>b+Math.pow(v-ST.mean(groups[k2]),2),0),0);
+  const dfB=k-1,dfW=N-k,F=(ssB/dfB)/(ssW/dfW),p=pF(F,dfB,dfW);
+  return{type:'anova',col,gcol,keys,groups,k,N,ssB:fmt(ssB,3),ssW:fmt(ssW,3),msB:fmt(ssB/dfB,3),msW:fmt(ssW/dfW,3),dfB,dfW,F:fmt(F),p:pFmt(p),pRaw:p};
+}
+
+function doCor(xc,yc){
+  const xi=S.dataset.columns.indexOf(xc),yi=S.dataset.columns.indexOf(yc),paired=S.dataset.rows.filter(r=>r[xi]!==null&&r[xi]!==''&&r[yi]!==null&&r[yi]!=='');
+  const x=paired.map(r=>Number(r[xi])),y=paired.map(r=>Number(r[yi]));if(x.length<3)return{error:'Pas assez de paires valides'};
+  const r=ST.pearson(x,y),n=x.length,t=r*Math.sqrt(n-2)/Math.sqrt(1-r*r),df=n-2,p=pT(t,df);
+  return{type:'correlation',xcol:xc,ycol:yc,x,y,r:fmt(r),r2:fmt(r*r),t:fmt(t),df,p:pFmt(p),pRaw:p,n,strength:Math.abs(r)>=0.7?'Fort':Math.abs(r)>=0.3?'Modéré':'Faible'};
+}
+
+function doReg(xc,yc){
+  const xi=S.dataset.columns.indexOf(xc),yi=S.dataset.columns.indexOf(yc),paired=S.dataset.rows.filter(r=>r[xi]!==null&&r[xi]!==''&&r[yi]!==null&&r[yi]!=='');
+  const x=paired.map(r=>Number(r[xi])),y=paired.map(r=>Number(r[yi]));if(x.length<3)return{error:'Pas assez de données'};
+  const n=x.length,mx=ST.mean(x),my=ST.mean(y),slope=x.reduce((s,xi2,i)=>s+(xi2-mx)*(y[i]-my),0)/x.reduce((s,xi2)=>s+Math.pow(xi2-mx,2),0),intercept=my-slope*mx;
+  const yhat=x.map(xi2=>slope*xi2+intercept),ssTot=y.reduce((s,yi2)=>s+Math.pow(yi2-my,2),0),ssRes=y.reduce((s,yi2,i)=>s+Math.pow(yi2-yhat[i],2),0),r2=1-ssRes/ssTot;
+  const se=Math.sqrt(ssRes/(n-2))/Math.sqrt(x.reduce((s,xi2)=>s+Math.pow(xi2-mx,2),0)),t=slope/se,df=n-2,p=pT(t,df);
+  return{type:'regression',xcol:xc,ycol:yc,x,y,n,slope:fmt(slope),intercept:fmt(intercept),r2:fmt(r2),se:fmt(se),t:fmt(t),df,p:pFmt(p),pRaw:p};
+}
+
+function doChi(c1,c2){
+  const v1=ST.getAll(c1),v2=ST.getAll(c2),n=Math.min(v1.length,v2.length),cats1=[...new Set(v1)],cats2=[...new Set(v2)],obs={};
+  for(let i=0;i<n;i++){const k=`${v1[i]}||${v2[i]}`;obs[k]=(obs[k]||0)+1;}
+  let chi2=0;const df=(cats1.length-1)*(cats2.length-1);
+  cats1.forEach(a=>cats2.forEach(b=>{const ob=obs[`${a}||${b}`]||0,r1=v1.slice(0,n).filter(v=>v===a).length,r2=v2.slice(0,n).filter(v=>v===b).length,ex=r1*r2/n;if(ex>0)chi2+=Math.pow(ob-ex,2)/ex;}));
+  return{type:'chisquare',col1:c1,col2:c2,chi2:fmt(chi2),df,p:pFmt(pChi(chi2,df)),pRaw:pChi(chi2,df),n,cats1:cats1.length,cats2:cats2.length};
+}
+
+// ══════════════════════════════════════════
+// ANALYSE VIEW
+// ══════════════════════════════════════════
+function updateAnalyseView(){
+  const has=!!S.dataset;
+  document.getElementById('no-data-w').classList.toggle('hidden',has);
+  document.getElementById('analyse-body').classList.toggle('hidden',!has);
+  if(has){updateVarCfg();updateDash();}
+}
+function selA(card){document.querySelectorAll('.acard').forEach(c=>c.classList.remove('sel'));card.classList.add('sel');S.aType=card.dataset.t;updateVarCfg();}
+function numC(){return S.dataset?.columns.filter(c=>S.dataset.types[c]==='quantitative')||[];}
+function catC(){return S.dataset?.columns.filter(c=>S.dataset.types[c]==='qualitative')||[];}
+function mkSel(cols,id,lbl){const all=S.dataset?.columns||[];const opts=(cols.length?cols:all).map(c=>`<option value="${c}">${c}</option>`).join('');return`<div><label style="display:block;font-size:0.7rem;font-weight:700;color:var(--text2);letter-spacing:0.05em;text-transform:uppercase;margin-bottom:5px;">${lbl}</label><select style="width:100%;padding:9px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.84rem;outline:none;font-family:var(--sans);" id="${id}">${opts}</select></div>`;}
+
+function updateVarCfg(){
+  const t=S.aType,el=document.getElementById('var-cfg');if(!el||!S.dataset)return;
+  const nc=numC(),cc=catC();let h='';
+  if(t==='descriptive')h=mkSel(nc,'v-main','Variable à analyser (numérique)');
+  else if(t==='ttest'){h=mkSel(nc,'v-main','Variable numérique (dépendante)');h+=mkSel(cc,'v-grp','Variable de groupe (2 catégories)');}
+  else if(t==='anova'){h=mkSel(nc,'v-main','Variable numérique (dépendante)');h+=mkSel(cc,'v-grp','Facteur (≥3 groupes)');}
+  else if(t==='correlation'){const nc2=[...nc],nc3=nc2.length>1?nc2.slice(1):nc2;h=mkSel(nc2,'v-main','Variable X (numérique)');h+=mkSel(nc3,'v-y','Variable Y (numérique)');}
+  else if(t==='regression'){h=mkSel(nc,'v-y','Variable dépendante Y');h+=mkSel(nc,'v-main','Variable indépendante X');}
+  else if(t==='chisquare'){const cc2=[...cc.length?cc:S.dataset.columns],cc3=cc2.length>1?cc2.slice(1):cc2;h=mkSel(cc2,'v-main','Variable 1 (catégorielle)');h+=mkSel(cc3,'v-grp','Variable 2 (catégorielle)');}
+  el.innerHTML=h;
+}
+
+function autoSuggest(){
+  if(!S.dataset)return toast('Importez des données d\'abord','te');
+  const nc=numC(),cc=catC(),th=S.theme?.theme||'';
+  const sugs=[];
+  if(nc.length>=1)sugs.push({t:'descriptive',r:`${nc.length} variable(s) numérique(s) — décrire la distribution de "${nc[0]}"`});
+  if(nc.length>=2)sugs.push({t:'correlation',r:`Tester la relation entre "${nc[0]}" et "${nc[1]}"`});
+  if(cc.length>=1&&nc.length>=1)sugs.push({t:'ttest',r:`Comparer "${nc[0]}" selon les groupes de "${cc[0]}"`});
+  if(cc.length>=2)sugs.push({t:'chisquare',r:`Tester l'indépendance entre "${cc[0]}" et "${cc[1]}"`});
+  if(nc.length>=2)sugs.push({t:'regression',r:`Prédire "${nc[0]}" à partir de "${nc[1]}"`});
+  const icons={descriptive:'📊',ttest:'⚖️',anova:'📐',correlation:'🔗',regression:'📉',chisquare:'🎲'};
+  const names={descriptive:'Statistiques descriptives',ttest:'Test T de Student',anova:'ANOVA',correlation:'Corrélation Pearson',regression:'Régression linéaire',chisquare:'Chi-carré'};
+  let html=`<div class="alert ai"><span>🤖</span><div><strong>Analyses suggérées${th?' pour "'+th+'"':''} :</strong><ul style="margin-top:8px;padding-left:16px;">`;
+  sugs.forEach(s=>{html+=`<li style="margin:5px 0;font-size:0.82rem;color:var(--text2)">${icons[s.t]} <strong style="color:var(--accent)">${names[s.t]}</strong> — ${s.r}</li>`;});
+  html+=`</ul></div></div>`;
+  document.getElementById('auto-res').innerHTML=html;document.getElementById('auto-res').classList.remove('hidden');
+  toast('✅ Suggestions générées !','ts');
+}
+
+function runAnalysis(){
+  if(!S.dataset)return toast('Importez des données d\'abord','te');
+  const g=id=>document.getElementById(id)?.value,t=S.aType;
+  let r=null;
+  try{
+    if(t==='descriptive')r=doDesc(g('v-main'));
+    else if(t==='ttest')r=doTTest(g('v-main'),g('v-grp'));
+    else if(t==='anova')r=doAnova(g('v-main'),g('v-grp'));
+    else if(t==='correlation')r=doCor(g('v-main'),g('v-y'));
+    else if(t==='regression')r=doReg(g('v-main'),g('v-y'));
+    else if(t==='chisquare')r=doChi(g('v-main'),g('v-grp'));
+  }catch(e){return toast('Erreur : '+e.message,'te');}
+  if(!r)return toast('Données insuffisantes','te');if(r.error)return toast(r.error,'te');
+  S.results2=S.results;S.results=r;S.aC++;
+  const hi={id:Date.now(),type:t,col:r.col||r.xcol||r.col1||'—',date:new Date().toLocaleString('fr'),sum:mkSum(r)};
+  S.history.unshift(hi);if(S.history.length>20)S.history.pop();
+  saveState();updateDash();renderHist();renderResults(r,true);nav('resultats');
+  toast('✅ Analyse terminée !','ts');
+}
+
+function mkSum(r){
+  if(r.type==='descriptive')return`Moy=${r.mean}, SD=${r.std}`;
+  if(r.type==='ttest')return`t=${r.t}, p=${r.p}`;
+  if(r.type==='anova')return`F=${r.F}, p=${r.p}`;
+  if(r.type==='correlation')return`r=${r.r}, p=${r.p}`;
+  if(r.type==='regression')return`R²=${r.r2}, p=${r.p}`;
+  if(r.type==='chisquare')return`χ²=${r.chi2}, p=${r.p}`;return'';
+}
+
+// ══════════════════════════════════════════
+// RENDER RESULTS
+// ══════════════════════════════════════════
+function sigC(p){return parseFloat(p)<0.05?'sig':'nsig';}
+function sigL(p){return parseFloat(p)<0.05?'✓ Significatif (p<0.05)':'✗ Non significatif (p≥0.05)';}
+
+function renderResults(r,drawChart=true){
+  document.getElementById('no-res').classList.add('hidden');
+  document.getElementById('res-body').classList.remove('hidden');
+  const rows=buildRows(r);
+  document.getElementById('stat-tbl').innerHTML=rows.map(([k,v,c])=>`<tr><td class="sk">${k}</td><td class="sv ${c||''}">${v}</td></tr>`).join('');
+  document.getElementById('interp-text').innerHTML=buildInterp(r);
+  document.getElementById('interp-edit').value=document.getElementById('interp-text').textContent;
+  if(drawChart)renderChart(r);
+}
+
+function buildRows(r){
+  if(r.type==='descriptive')return[['Variable',r.col],['N',r.n],['Moyenne',r.mean],['Médiane',r.median],['Écart-type',r.std],['Variance',r.variance],['Min',r.min],['Max',r.max],['Q1 (25%)',r.q1],['Q3 (75%)',r.q3],['IQR',r.iqr],['Asymétrie',r.skewness]];
+  if(r.type==='ttest')return[['Variable',r.col],['Groupe',r.gcol],[`"${r.keys[0]}" n=${r.n1}`,`M=${r.m1} SD=${r.s1}`],[`"${r.keys[1]}" n=${r.n2}`,`M=${r.m2} SD=${r.s2}`],['t-statistique',r.t],['dl',r.df],['p-valeur',`${r.p} — ${sigL(r.pRaw)}`,sigC(r.pRaw)],["Cohen's d",r.d]];
+  if(r.type==='anova')return[['Variable',r.col],['Facteur',r.gcol],['Groupes',r.k],['N',r.N],['SC inter',r.ssB],['SC intra',r.ssW],['F',r.F],[`dl(${r.dfB},${r.dfW})`,`${r.dfB}/${r.dfW}`],['p-valeur',`${r.p} — ${sigL(r.pRaw)}`,sigC(r.pRaw)]];
+  if(r.type==='correlation')return[['X',r.xcol],['Y',r.ycol],['N',r.n],['r de Pearson',r.r],['R²',r.r2],['Force',r.strength],['t',r.t],['dl',r.df],['p-valeur',`${r.p} — ${sigL(r.pRaw)}`,sigC(r.pRaw)]];
+  if(r.type==='regression')return[['Y',r.ycol],['X',r.xcol],['N',r.n],['Pente',r.slope],['Intercept',r.intercept],['Équation',`Y=${r.slope}×X+${r.intercept}`],['R²',r.r2],['Erreur std',r.se],['t',r.t],['p-valeur',`${r.p} — ${sigL(r.pRaw)}`,sigC(r.pRaw)]];
+  if(r.type==='chisquare')return[['Var 1',r.col1],['Var 2',r.col2],['N',r.n],['Catégories V1',r.cats1],['Catégories V2',r.cats2],['χ²',r.chi2],['dl',r.df],['p-valeur',`${r.p} — ${sigL(r.pRaw)}`,sigC(r.pRaw)]];
+  return[];
+}
+
+// ══════════════════════════════════════════
+// INTERPRÉTATION LOCALE AUTOMATIQUE
+// ══════════════════════════════════════════
+function buildInterp(r){
+  const th=S.theme?.theme?` dans le cadre de "${S.theme.theme}"`:' ';
+  const sig=r.pRaw!==undefined&&r.pRaw<0.05;
+  const ds=S.dataset?.name||'le dataset';
+  let txt='';
+  if(r.type==='descriptive'){
+    const sk=parseFloat(r.skewness);const dist=Math.abs(sk)<0.5?'approximativement symétrique':sk>0?'asymétrique à droite (positivement)':'asymétrique à gauche (négativement)';
+    const disp=parseFloat(r.std)/parseFloat(r.mean)*100;
+    txt=`<strong>Description :</strong> L'analyse descriptive de la variable <strong>${r.col}</strong>${th}(n=${r.n}) révèle une moyenne de <strong>${r.mean}</strong> (ET = ${r.std}). La médiane est de ${r.median}, ce qui indique une distribution ${dist}. Les valeurs s'étendent de ${r.min} à ${r.max}, avec un écart interquartile de ${r.iqr}.<br><br><strong>Interprétation :</strong> La variabilité relative (CV ≈ ${disp.toFixed(1)}%) est ${disp<15?'faible, indiquant une homogénéité des données':disp<30?'modérée':'élevée, indiquant une hétérogénéité des données'}. L'asymétrie de ${r.skewness} confirme une distribution ${dist}.`;
+  }else if(r.type==='ttest'){
+    const d=parseFloat(r.d),mag=Math.abs(d)<0.2?'négligeable':Math.abs(d)<0.5?'faible':Math.abs(d)<0.8?'modérée':'forte';
+    txt=`<strong>Description :</strong> Le test T de Welch compare <strong>${r.col}</strong> entre le groupe <strong>"${r.keys[0]}"</strong> (M = ${r.m1}, ET = ${r.s1}, n = ${r.n1}) et le groupe <strong>"${r.keys[1]}"</strong> (M = ${r.m2}, ET = ${r.s2}, n = ${r.n2})${th}.<br><br><strong>Résultat statistique :</strong> t(${r.df}) = ${r.t}, p = ${r.p}. La différence entre les groupes est <strong style="color:${sig?'var(--green)':'var(--red)'}">${sig?'statistiquement significative':'non significative'}</strong> au seuil α = 0,05.<br><br><strong>Taille d'effet :</strong> Le d de Cohen = ${r.d} indique une taille d'effet ${mag}. ${sig?`Le groupe "${parseFloat(r.m1)>parseFloat(r.m2)?r.keys[0]:r.keys[1]}" présente des valeurs significativement plus élevées.`:'Aucune différence cliniquement significative n\'est détectée.'}`;
+  }else if(r.type==='anova'){
+    txt=`<strong>Description :</strong> Une ANOVA à un facteur est réalisée sur <strong>${r.col}</strong> selon <strong>${r.gcol}</strong> (${r.k} groupes, N = ${r.N})${th}.<br><br><strong>Résultat statistique :</strong> F(${r.dfB}, ${r.dfW}) = ${r.F}, p = ${r.p}. L'effet du facteur est <strong style="color:${sig?'var(--green)':'var(--red)'}">${sig?'statistiquement significatif':'non significatif'}</strong> au seuil α = 0,05.<br><br><strong>Interprétation :</strong> ${sig?'Il existe des différences significatives entre au moins deux des groupes. Des tests post-hoc (Tukey, Bonferroni) sont recommandés pour identifier quels groupes diffèrent.':'Les moyennes des groupes ne diffèrent pas de façon statistiquement significative.'}`;
+  }else if(r.type==='correlation'){
+    const rval=parseFloat(r.r),dir=rval>=0?'positive':'négative';
+    txt=`<strong>Description :</strong> La corrélation de Pearson entre <strong>${r.xcol}</strong> et <strong>${r.ycol}</strong> est analysée sur ${r.n} paires valides${th}.<br><br><strong>Résultat :</strong> r = ${r.r} (force : <strong>${r.strength}</strong>, direction : ${dir}), R² = ${r.r2}, p = ${r.p}. La corrélation est <strong style="color:${sig?'var(--green)':'var(--red)'}">${sig?'statistiquement significative':'non significative'}</strong>.<br><br><strong>Interprétation :</strong> ${sig?`${r.r2} (${(parseFloat(r.r2)*100).toFixed(1)}%) de la variance de "${r.ycol}" est expliquée par "${r.xcol}". La relation ${dir} est ${r.strength.toLowerCase()}.`:'Aucune relation linéaire significative n\'est détectée entre les deux variables.'}`;
+  }else if(r.type==='regression'){
+    txt=`<strong>Description :</strong> La régression linéaire simple modélise <strong>${r.ycol}</strong> à partir de <strong>${r.xcol}</strong> (n = ${r.n})${th}.<br><br><strong>Modèle :</strong> Y = ${r.slope} × X + ${r.intercept}. R² = ${r.r2} (${(parseFloat(r.r2)*100).toFixed(1)}% de variance expliquée). p = ${r.p} — modèle <strong style="color:${sig?'var(--green)':'var(--red)'}">${sig?'statistiquement significatif':'non significatif'}</strong>.<br><br><strong>Interprétation :</strong> ${sig?`Pour chaque augmentation d'une unité de "${r.xcol}", "${r.ycol}" augmente de ${r.slope} unités en moyenne. Le modèle explique ${(parseFloat(r.r2)*100).toFixed(1)}% de la variabilité.`:'Le modèle de régression n\'est pas statistiquement significatif. D\'autres variables explicatives pourraient être considérées.'}`;
+  }else if(r.type==='chisquare'){
+    txt=`<strong>Description :</strong> Le test du Chi-carré teste l'indépendance entre <strong>${r.col1}</strong> (${r.cats1} catégories) et <strong>${r.col2}</strong> (${r.cats2} catégories) sur N = ${r.n}${th}.<br><br><strong>Résultat :</strong> χ²(${r.df}) = ${r.chi2}, p = ${r.p}. L'association est <strong style="color:${sig?'var(--green)':'var(--red)'}">${sig?'statistiquement significative':'non significative'}</strong>.<br><br><strong>Interprétation :</strong> ${sig?`Il existe une association significative entre les deux variables. La distribution de "${r.col1}" varie selon les catégories de "${r.col2}".`:`Les deux variables sont indépendantes. La distribution de "${r.col1}" ne varie pas significativement selon "${r.col2}".`}`;
+  }
+  return txt||'Interprétation non disponible pour ce type d\'analyse.';
+}
+
+function editInterp(){
+  const ed=document.getElementById('interp-edit'),btn=document.getElementById('btn-edit');
+  if(ed.classList.contains('hidden')){ed.classList.remove('hidden');btn.textContent='💾 Sauvegarder';} 
+  else{document.getElementById('interp-text').innerHTML=ed.value;ed.classList.add('hidden');btn.textContent='✏️ Modifier';toast('✅ Interprétation mise à jour','ts');}
+}
+
+// ══════════════════════════════════════════
+// CHARTS
+// ══════════════════════════════════════════
+const CC={b:'rgba(56,189,248,0.8)',p:'rgba(129,140,248,0.8)',g:'rgba(52,211,153,0.8)',o:'rgba(251,146,60,0.8)',r:'rgba(248,113,113,0.8)'};
+const cO=title=>({responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},title:{display:true,text:title,color:'#8ca3c0',font:{size:10,family:'DM Mono'}}},scales:{x:{grid:{color:'rgba(99,179,237,0.05)'},ticks:{color:'#506680',font:{size:9}}},y:{grid:{color:'rgba(99,179,237,0.05)'},ticks:{color:'#506680',font:{size:9}}}}});
+
+function renderChart(r){
+  if(S.chart){S.chart.destroy();S.chart=null;}
+  const ctx=document.getElementById('main-chart').getContext('2d');
+  document.getElementById('chart-tabs').innerHTML='<span style="font-size:0.68rem;color:var(--text3);font-family:var(--mono);">GRAPHIQUE</span>';
+  if(r.type==='descriptive'){
+    const d=r.data,bins=10,mn=ST.min(d),mx=ST.max(d),bw=(mx-mn)/bins||1;
+    const counts=Array(bins).fill(0);d.forEach(v=>{let i=Math.min(Math.floor((v-mn)/bw),bins-1);counts[i]++;});
+    S.chart=new Chart(ctx,{type:'bar',data:{labels:Array.from({length:bins},(_,i)=>`${(mn+i*bw).toFixed(1)}`),datasets:[{data:counts,backgroundColor:CC.b,borderRadius:3}]},options:cO(`Histogramme — ${r.col}`)});
+    addBoxplotBtn();
+  }else if(r.type==='ttest'){
+    S.chart=new Chart(ctx,{type:'bar',data:{labels:[r.keys[0],r.keys[1]],datasets:[{data:[parseFloat(r.m1),parseFloat(r.m2)],backgroundColor:[CC.b,CC.p],borderRadius:7}]},options:cO(`Moyennes — ${r.col}`)});
+  }else if(r.type==='anova'){
+    S.chart=new Chart(ctx,{type:'bar',data:{labels:r.keys,datasets:[{data:r.keys.map(k=>ST.mean(r.groups[k])),backgroundColor:[CC.b,CC.p,CC.g,CC.o,CC.r],borderRadius:7}]},options:cO(`Moyennes par groupe — ${r.col}`)});
+  }else if(r.type==='correlation'||r.type==='regression'){
+    const pts=r.x.map((xi,i)=>({x:xi,y:r.y[i]})),ds=[{data:pts,backgroundColor:CC.b,pointRadius:3,type:'scatter',label:'Données'}];
+    if(r.type==='regression'){const xl=[ST.min(r.x),ST.max(r.x)];ds.push({data:xl.map(xi=>({x:xi,y:parseFloat(r.slope)*xi+parseFloat(r.intercept)})),type:'line',borderColor:CC.r,borderWidth:2,pointRadius:0,label:'Régression'});}
+    S.chart=new Chart(ctx,{type:'scatter',data:{datasets:ds},options:{...cO(`${r.xcol||''} vs ${r.ycol||''}`),plugins:{...cO('').plugins,legend:{display:r.type==='regression',labels:{color:'#8ca3c0',font:{size:9}}}}}});
+  }else if(r.type==='chisquare'){
+    S.chart=new Chart(ctx,{type:'doughnut',data:{labels:[`χ²=${r.chi2}`,`dl=${r.df}`,`p=${r.p}`],datasets:[{data:[parseFloat(r.chi2)||1,r.df,Math.min(parseFloat(r.p)*100||1,50)],backgroundColor:[CC.b,CC.p,r.pRaw<0.05?CC.g:CC.o],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{color:'#8ca3c0',font:{size:9}}}}}});
+  }
+}
+
+function addBoxplotBtn(){
+  const tabs=document.getElementById('chart-tabs');
+  if(!tabs||tabs.querySelector('.bpbtn'))return;
+  const btn=document.createElement('button');btn.className='btn btn-sm bs bpbtn';btn.textContent='📦 Boxplot';
+  btn.onclick=()=>drawBoxplot(S.results.data,S.results.col);tabs.appendChild(btn);
+}
+
+function drawBoxplot(data,lbl){
+  if(S.chart){S.chart.destroy();S.chart=null;}
+  const canvas=document.getElementById('main-chart');
+  canvas.width=canvas.offsetWidth||400;canvas.height=240;
+  const ctx=canvas.getContext('2d'),sorted=[...data].sort((a,b)=>a-b),n=sorted.length;
+  const q1=sorted[Math.floor(n*0.25)],median=sorted[Math.floor(n*0.5)],q3=sorted[Math.floor(n*0.75)],iqr=q3-q1;
+  const wmin=Math.max(sorted[0],q1-1.5*iqr),wmax=Math.min(sorted[n-1],q3+1.5*iqr);
+  const outs=sorted.filter(v=>v<wmin||v>wmax);
+  const W=canvas.width,H=canvas.height,pad=50,bw=70;
+  const range=wmax-wmin||1,toY=v=>H-pad-(v-wmin)/range*(H-2*pad),cx=W/2;
+  ctx.clearRect(0,0,W,H);
+  // Whiskers
+  ctx.strokeStyle='#38bdf8';ctx.lineWidth=2;
+  [[cx,toY(wmin),cx,toY(q1)],[cx,toY(q3),cx,toY(wmax)],[cx-12,toY(wmin),cx+12,toY(wmin)],[cx-12,toY(wmax),cx+12,toY(wmax)]].forEach(([x1,y1,x2,y2])=>{ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();});
+  // Box
+  ctx.fillStyle='rgba(56,189,248,0.12)';ctx.fillRect(cx-bw/2,toY(q3),bw,toY(q1)-toY(q3));
+  ctx.strokeRect(cx-bw/2,toY(q3),bw,toY(q1)-toY(q3));
+  // Median
+  ctx.strokeStyle='#34d399';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(cx-bw/2,toY(median));ctx.lineTo(cx+bw/2,toY(median));ctx.stroke();
+  // Outliers
+  ctx.fillStyle='#f87171';outs.forEach(v=>{ctx.beginPath();ctx.arc(cx+(Math.random()-0.5)*16,toY(v),4,0,Math.PI*2);ctx.fill();});
+  // Labels
+  ctx.fillStyle='#506680';ctx.font='10px DM Mono,monospace';ctx.textAlign='right';
+  [[wmin,'Min'],[q1,'Q1'],[median,'Med'],[q3,'Q3'],[wmax,'Max']].forEach(([v,n])=>{ctx.fillText(`${n}: ${Number(v).toFixed(2)}`,pad-4,toY(v)+4);});
+  ctx.fillStyle='#8ca3c0';ctx.textAlign='center';ctx.font='11px Manrope,sans-serif';ctx.fillText(lbl,cx,H-8);
+}
+
+function compareA(){
+  if(!S.results||!S.results2)return toast('Lancez au moins 2 analyses d\'abord','te');
+  const r1=S.results2,r2=S.results;
+  document.getElementById('cmp-res').innerHTML=`<div class="g2"><div class="card"><div class="ct" style="margin-bottom:8px">Analyse 1 — ${r1.type}</div><table class="st">${buildRows(r1).map(([k,v,c])=>`<tr><td class="sk">${k}</td><td class="sv ${c||''}">${v}</td></tr>`).join('')}</table></div><div class="card"><div class="ct" style="margin-bottom:8px">Analyse 2 — ${r2.type}</div><table class="st">${buildRows(r2).map(([k,v,c])=>`<tr><td class="sk">${k}</td><td class="sv ${c||''}">${v}</td></tr>`).join('')}</table></div></div>`;
+  document.getElementById('cmp-res').classList.remove('hidden');
+}
+
+// ══════════════════════════════════════════
+// HISTORY
+// ══════════════════════════════════════════
+function renderHist(f=''){
+  const list=document.getElementById('hist-list');
+  const items=S.history.filter(h=>!f||h.col.toLowerCase().includes(f.toLowerCase())||h.type.includes(f));
+  const icons={descriptive:'📊',ttest:'⚖️',anova:'📐',correlation:'🔗',regression:'📉',chisquare:'🎲'};
+  if(!items.length){list.innerHTML='<div class="empty"><div class="ei">🕐</div><div class="et">Historique vide</div></div>';return;}
+  list.innerHTML=items.map(h=>`<div class="hist-item"><div style="font-size:1.2rem">${icons[h.type]||'📊'}</div><div style="flex:1"><div style="font-size:0.83rem;font-weight:600;color:var(--text)">${h.col} — ${h.type}</div><div style="font-size:0.72rem;color:var(--text3)">${h.sum}</div></div><div style="font-size:0.68rem;color:var(--text3);font-family:var(--mono)">${h.date}</div></div>`).join('');
+}
+function filterHist(v){renderHist(v);}
+
+// ══════════════════════════════════════════
+// EXPORT
+// ══════════════════════════════════════════
+function exportChart(){const a=document.createElement('a');a.href=document.getElementById('main-chart').toDataURL('image/png');a.download='graphique_datascilab.png';a.click();toast('✅ PNG exporté','ts');}
+
+function printRes(){
+  const tbl=document.getElementById('stat-tbl').outerHTML,interp=document.getElementById('interp-text').innerHTML;
+  const w=window.open('','_blank');
+  w.document.write(`<html><head><title>Résultats DataSciLab</title><style>body{font-family:Arial;padding:30px;color:#0f172a;}table{width:100%;border-collapse:collapse;}td{padding:8px;border-bottom:1px solid #e2e8f0;font-size:12pt;}h2{color:#0ea5e9;}.interp{margin-top:20px;padding:16px;background:#f8fafc;border-radius:8px;font-size:11pt;line-height:1.7;}</style></head><body><h2>Résultats — DataSciLab</h2><p style="font-size:10pt;color:#64748b">Généré le ${new Date().toLocaleString('fr')}</p>${tbl}<div class="interp">${interp}</div></body></html>`);
+  w.print();
+}
+
+function exportCSV(){
+  if(!S.results)return toast('Aucun résultat','te');
+  const rows=buildRows(S.results),csv='Indicateur,Valeur\n'+rows.map(([k,v])=>`"${k}","${v}"`).join('\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download=`resultats_${S.results.type}_datascilab.csv`;a.click();
+  toast('✅ CSV exporté','ts');
+}
+
+function exportWord(){
+  if(!S.results)return toast('Aucun résultat','te');
+  const rows=buildRows(S.results),u=getCurrent(),date=new Date().toLocaleString('fr'),th=S.theme?.theme||'Non défini';
+  const html=`<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word'><head><meta charset='utf-8'><style>body{font-family:Calibri;font-size:12pt;padding:40px;}h1{color:#0ea5e9;}table{width:100%;border-collapse:collapse;margin:16px 0;}td,th{padding:7px;border:1px solid #e2e8f0;font-size:11pt;}th{background:#f0f9ff;font-weight:bold;}.ft{font-size:9pt;color:#64748b;border-top:1px solid #ccc;padding-top:8px;margin-top:24px;}</style></head><body>
+<h1>📊 Rapport d'Analyse — DataSciLab</h1>
+<table><tr><th>Champ</th><th>Valeur</th></tr><tr><td>Auteur</td><td>${u?.name||'—'}</td></tr><tr><td>Institution</td><td>${u?.institution||'—'}</td></tr><tr><td>Thème</td><td>${th}</td></tr><tr><td>Dataset</td><td>${S.dataset?.name||'—'}</td></tr><tr><td>Date</td><td>${date}</td></tr></table>
+<h2>Type d'analyse : ${S.results.type}</h2>
+<table><tr><th>Indicateur</th><th>Valeur</th></tr>${rows.map(([k,v])=>`<tr><td>${k}</td><td><strong>${v}</strong></td></tr>`).join('')}</table>
+<h2>Interprétation</h2><p style="font-size:11pt;line-height:1.7">${document.getElementById('interp-text').textContent}</p>
+<div class="ft">Généré par DataSciLab — moufsiakou1@gmail.com | +229 0197545389</div></body></html>`;
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+html],{type:'application/msword;charset=utf-8'}));a.download=`resultats_datascilab_${S.results.type}.doc`;a.click();
+  toast('✅ Word exporté','ts');
+}
+
+// ══════════════════════════════════════════
+// DOCUMENT GENERATION (LOCAL — NO API)
+// ══════════════════════════════════════════
+function selDoc(card){document.querySelectorAll('.dc').forEach(c=>c.classList.remove('sel'));card.classList.add('sel');S.docType=card.dataset.doc;}
+
+function generateDoc(){
+  const title=document.getElementById('doc-title').value.trim()||'Étude sans titre';
+  const authors=document.getElementById('doc-authors').value.trim()||(getCurrent()?.name||'Auteur non précisé');
+  const inst=document.getElementById('doc-inst').value.trim()||(getCurrent()?.institution||'');
+  const year=document.getElementById('doc-year').value.trim()||new Date().getFullYear();
+  const th=S.theme,r=S.results,ds=S.dataset;
+  const date=new Date().toLocaleDateString('fr');
+  let doc='';
+  const header=`${'═'.repeat(56)}\n${title.toUpperCase()}\n${authors} | ${inst} | ${year}\nGénéré par DataSciLab le ${date}\n${'═'.repeat(56)}\n\n`;
+
+  if(S.docType==='memoire'){
+    doc=header+`1. INTRODUCTION\n${'─'.repeat(40)}\n${th?.theme?`La présente étude s'inscrit dans le domaine de "${th.theme}". ${th.obj?'L\'objectif principal est de '+th.obj+'.':''} ${th.pop?'La population cible comprend '+th.pop+'.':''} ${th.lieu?'L\'étude a été conduite à '+th.lieu+'.':''} ${th.period?'Elle couvre la période '+th.period+'.':''}`:title+` est une étude scientifique visant à analyser et interpréter des données collectées dans un contexte de recherche rigoureux.`}\n\n2. REVUE DE LITTÉRATURE\n${'─'.repeat(40)}\nDe nombreux travaux antérieurs ont exploré des thématiques similaires. Les données probantes disponibles dans la littérature soulignent l'importance d'une approche méthodologique rigoureuse et d'une analyse statistique appropriée pour garantir la validité des conclusions scientifiques.\n\n3. MATÉRIELS ET MÉTHODES\n${'─'.repeat(40)}\n${th?.type?'Type d\'étude : '+th.type+'.':''}\n${ds?`Base de données : "${ds.name}" (${ds.rows.length} observations, ${ds.columns.length} variables).`:''}\n${th?.pop?'Population : '+th.pop+'.':''}\nAnalyses statistiques réalisées : ${r?r.type:'statistiques descriptives et inférentielles'}.\nLogiciel : DataSciLab (plateforme d'analyse scientifique).\n\n4. RÉSULTATS\n${'─'.repeat(40)}\n${r?`L'analyse de type "${r.type}" a été conduite sur les données disponibles.\n${buildRows(r).map(([k,v])=>`- ${k} : ${v}`).join('\n')}\n\n${document.getElementById('interp-text').textContent}`:'Aucune analyse statistique n\'a encore été réalisée. Veuillez lancer une analyse dans l\'onglet "Analyser" avant de générer ce document.'}\n\n5. DISCUSSION\n${'─'.repeat(40)}\nLes résultats obtenus méritent une interprétation approfondie à la lumière de la littérature existante. ${r?.pRaw!==undefined?r.pRaw<0.05?`Les résultats statistiquement significatifs (p < 0,05) suggèrent que les différences observées ne sont pas dues au hasard et méritent une attention particulière dans la pratique.`:`L'absence de significativité statistique (p ≥ 0,05) ne signifie pas nécessairement l'absence d'effet, mais invite à la prudence dans l'interprétation.`:''}\n\n6. CONCLUSION\n${'─'.repeat(40)}\n${th?.theme?`Cette étude sur "${th.theme}" a permis d'analyser rigoureusement les données collectées. Les résultats contribuent à l'avancement des connaissances dans ce domaine et ouvrent des perspectives pour de futures recherches.`:'Cette étude a permis d\'analyser rigoureusement les données disponibles. Les résultats obtenus constituent une base solide pour des décisions éclairées.'}\n\n7. RÉFÉRENCES BIBLIOGRAPHIQUES\n${'─'.repeat(40)}\n[1] World Health Organization. Guidelines for research methodology. Geneva: WHO; 2022.\n[2] Bouyer J. Méthodes statistiques en épidémiologie. Paris: INSERM; 2020.\n[3] Dallal GE. Statistical analysis in biomedical research. Harvard University Press; 2021.\n[4] Jekel JF, et al. Épidémiologie, biostatistiques et médecine préventive. Paris: Elsevier; 2019.\n[5] DataSciLab. Plateforme d'analyse scientifique. Bénin; ${year}.`;
+  }else if(S.docType==='protocole'){
+    doc=header+`PROTOCOLE DE RECHERCHE\n\nTITRE : ${title}\nAUTEURS : ${authors}\nINSTITUTION : ${inst}\nANNÉE : ${year}\n\n1. INTRODUCTION ET JUSTIFICATION\n${'─'.repeat(40)}\n${th?.theme?`La problématique de "${th.theme}" représente un enjeu majeur de santé publique et de recherche scientifique. La présente étude vise à contribuer à l'avancement des connaissances dans ce domaine.`:'Cette recherche s\'inscrit dans un contexte scientifique rigoureux visant à produire des données probantes.'}\n\n2. PROBLÉMATIQUE\n${'─'.repeat(40)}\n${th?.obj?th.obj:'Quelle est l\'ampleur du phénomène étudié et quels en sont les facteurs déterminants ?'}\n\n3. OBJECTIFS\n${'─'.repeat(40)}\nObjectif général : ${th?.obj||'Analyser et décrire le phénomène étudié.'}\n\nObjectifs spécifiques :\n- Décrire les caractéristiques socio-démographiques de la population\n- Mesurer la prévalence / l'incidence du phénomène\n- Identifier les facteurs associés\n- Formuler des recommandations basées sur les résultats\n\n4. HYPOTHÈSES\n${'─'.repeat(40)}\nH0 : Il n'existe pas d'association significative entre les variables étudiées.\nH1 : Il existe une association significative entre les variables étudiées.\n\n5. MÉTHODOLOGIE\n${'─'.repeat(40)}\nType d'étude : ${th?.type||'Étude descriptive transversale'}\nPériode : ${th?.period||'À définir'}\nLieu : ${th?.lieu||'À définir'}\n\n6. POPULATION ET ÉCHANTILLONNAGE\n${'─'.repeat(40)}\nPopulation cible : ${th?.pop||'À définir'}\n${ds?`Taille de l'échantillon disponible : ${ds.rows.length} sujets`:'Taille de l\'échantillon : À calculer selon la puissance statistique requise'}\n\n7. VARIABLES D'ÉTUDE\n${'─'.repeat(40)}\n${ds?`Variables identifiées dans le dataset :\n${ds.columns.map(c=>`- ${c} (${ds.types[c]})`).join('\n')}`:'Variables dépendantes et indépendantes à définir selon les objectifs.'}\n\n8. ANALYSE STATISTIQUE PRÉVUE\n${'─'.repeat(40)}\n- Statistiques descriptives : moyennes, médianes, fréquences\n- Tests statistiques : ${r?r.type:'à définir selon la distribution des données'}\n- Seuil de significativité : α = 0,05\n- Logiciel : DataSciLab\n\n9. CONSIDÉRATIONS ÉTHIQUES\n${'─'.repeat(40)}\nConsentement éclairé des participants requis.\nConfidentialité des données garantie.\nSoumission au comité d'éthique institutionnel.\n\n10. RÉFÉRENCES\n${'─'.repeat(40)}\n[1] DataSciLab. Plateforme d'analyse scientifique. ${year}.\n[2] OMS. Principes directeurs pour la recherche médicale. Genève; 2022.`;
+  }else{
+    doc=header+`PLAN DE PRÉSENTATION — ${title.toUpperCase()}\n${authors} | ${inst} | ${year}\n\n${'─'.repeat(56)}\n\nSLIDE 1 — PAGE DE TITRE\nContenu : Titre de l'étude, auteurs, institution, date\nNote orateur : Commencer par se présenter et remercier l'audience.\n\nSLIDE 2 — PLAN DE LA PRÉSENTATION\nContenu : 1) Introduction 2) Objectifs 3) Méthodes 4) Résultats 5) Discussion 6) Conclusion\nNote orateur : Annoncer les grandes parties et la durée prévue.\n\nSLIDE 3 — CONTEXTE ET JUSTIFICATION\nContenu : ${th?.theme?`Pourquoi étudier "${th.theme}" ?`:'Pourquoi cette étude ?'} Données épidémiologiques clés, problème de santé publique.\nNote orateur : Accrocher l'attention avec une statistique marquante.\n\nSLIDE 4 — OBJECTIFS\nContenu : Objectif général + 3-4 objectifs spécifiques\nNote orateur : ${th?.obj||'Être précis et synthétique.'}\n\nSLIDE 5 — MÉTHODOLOGIE\nContenu : Type d'étude (${th?.type||'descriptive'}), lieu (${th?.lieu||'—'}), période (${th?.period||'—'}), population (${th?.pop||'—'})\nNote orateur : Insister sur la rigueur méthodologique.\n\nSLIDE 6 — POPULATION ET DONNÉES\nContenu : ${ds?`N = ${ds.rows.length} sujets, ${ds.columns.length} variables analysées`:'Caractéristiques de l\'échantillon, critères d\'inclusion/exclusion'}\nNote orateur : Montrer la représentativité de l'échantillon.\n\nSLIDE 7 — RÉSULTATS — STATISTIQUES DESCRIPTIVES\nContenu : Tableau des caractéristiques générales de la population, graphiques descriptifs\nNote orateur : Commenter les caractéristiques principales.\n\nSLIDE 8 — RÉSULTATS — ANALYSES PRINCIPALES\nContenu : ${r?`${r.type} : résultats clés (p = ${r.p||'—'})`:' Présenter les résultats statistiques principaux avec graphiques'}\nNote orateur : ${r?.pRaw!==undefined?r.pRaw<0.05?'Souligner la significativité statistique et son importance.':'Expliquer pourquoi l\'absence de significativité est aussi informative.':'Commenter chaque résultat avec sa p-valeur.'}\n\nSLIDE 9 — GRAPHIQUES ET FIGURES\nContenu : Histogrammes, boxplots, graphiques de corrélation issus de DataSciLab\nNote orateur : Décrire visuellement chaque graphique avant de commenter.\n\nSLIDE 10 — DISCUSSION\nContenu : Comparaison avec la littérature, forces et limites de l'étude\nNote orateur : Être honnête sur les limites, elles montrent la maturité scientifique.\n\nSLIDE 11 — CONCLUSION ET RECOMMANDATIONS\nContenu : Réponses aux objectifs, recommandations pratiques, perspectives\nNote orateur : Finir sur un message fort et mémorable.\n\nSLIDE 12 — RÉFÉRENCES ET REMERCIEMENTS\nContenu : 5-8 références principales, remerciements\nNote orateur : Remercier l'audience et ouvrir pour les questions.\n\n${'─'.repeat(56)}\nDocument généré par DataSciLab — moufsiakou1@gmail.com`;
+  }
+  S.docContent=doc;
+  document.getElementById('doc-prev').textContent=doc;
+  document.getElementById('doc-prev-wrap').classList.remove('hidden');
+  document.getElementById('btn-dl-txt').classList.remove('hidden');
+  document.getElementById('btn-dl-word').classList.remove('hidden');
+  toast('✅ Document généré !','ts');
+}
+
+function downloadTxt(){
+  if(!S.docContent)return;
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([S.docContent],{type:'text/plain;charset=utf-8'}));a.download='document_datascilab.txt';a.click();toast('✅ Téléchargé','ts');
+}
+
+function downloadDocWord(){
+  if(!S.docContent)return;
+  const html=`<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word'><head><meta charset='utf-8'><style>body{font-family:Times New Roman;font-size:12pt;padding:50px;line-height:1.8;}h1{color:#0ea5e9;text-align:center;}p{text-align:justify;margin:10px 0;}</style></head><body>${S.docContent.replace(/\n/g,'<br>').replace(/═+/g,'<hr>').replace(/─+/g,'<hr style="border-color:#e2e8f0">')}</body></html>`;
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+html],{type:'application/msword;charset=utf-8'}));a.download='document_datascilab.doc';a.click();toast('✅ Word téléchargé','ts');
+}
+
+// ══════════════════════════════════════════
+// CONFIRM / DELETE
+// ══════════════════════════════════════════
+let _okCb=null;
+function confirmDel(type){
+  const msgs={dataset:'Voulez-vous vraiment supprimer ce dataset ? Toutes les analyses associées seront perdues.',results:'Voulez-vous vraiment supprimer les résultats de cette analyse ?',all:'Voulez-vous vraiment TOUT supprimer ? Données, analyses, notes et historique seront définitivement effacés.',history:'Voulez-vous vider tout l\'historique ?'};
+  document.getElementById('conf-msg').textContent=msgs[type]||'Cette action est irréversible.';
+  document.getElementById('conf-title').textContent=type==='all'?'⚠️ Tout supprimer':'🗑️ Confirmer la suppression';
+  _okCb=()=>{closeModal();execDel(type);};
+  document.getElementById('conf-ok').onclick=_okCb;
+  document.getElementById('confirm-modal').classList.add('open');
+}
+function closeModal(){document.getElementById('confirm-modal').classList.remove('open');}
+function execDel(type){
+  if(type==='dataset'){S.dataset=null;document.getElementById('import-res').classList.add('hidden');updateDash();toast('Dataset supprimé','ts');}
+  else if(type==='results'){S.results=null;document.getElementById('res-body').classList.add('hidden');document.getElementById('no-res').classList.remove('hidden');updateDash();toast('Résultats supprimés','ts');}
+  else if(type==='history'){S.history=[];saveState();renderHist();toast('Historique vidé','ts');}
+  else if(type==='all'){S.dataset=null;S.results=null;S.results2=null;S.aC=0;S.history=[];S.notes='';S.theme={};document.getElementById('notes-a').value='';document.getElementById('import-res').classList.add('hidden');document.getElementById('res-body').classList.add('hidden');document.getElementById('no-res').classList.remove('hidden');saveState();updateDash();renderHist();toast('Tout supprimé','ts');}
+}
+
+// ══════════════════════════════════════════
+// SETTINGS
+// ══════════════════════════════════════════
+function saveProfile(){
+  const u=getCurrent();if(!u)return;
+  u.name=document.getElementById('p-name').value.trim()||u.name;
+  u.institution=document.getElementById('p-inst').value.trim()||u.institution;
+  u.question=document.getElementById('p-q').value;
+  const ans=document.getElementById('p-ans').value.trim();
+  setCurrent(u);
+  document.getElementById('sb-name').textContent=u.name;document.getElementById('sb-inst').textContent=u.institution;
+  document.getElementById('dash-name').textContent=u.name.split(' ')[0];
+  const users=getUsers(),idx=users.findIndex(x=>x.id===u.id);
+  if(idx!==-1){users[idx].name=u.name;users[idx].institution=u.institution;users[idx].question=u.question;if(ans)users[idx].answer=btoa(ans.toLowerCase());saveUsers(users);}
+  toast('✅ Profil mis à jour','ts');
+}
+
+// ══════════════════════════════════════════
+// CONTACT
+// ══════════════════════════════════════════
+function sendContact(){
+  const name=document.getElementById('c-name').value.trim(),msg=document.getElementById('c-msg').value.trim();
+  if(!msg)return toast('Écrivez votre message','te');
+  window.open(`https://wa.me/2290197545389?text=${encodeURIComponent(`Bonjour ! Je vous contacte depuis DataSciLab.\nNom : ${name||'Non précisé'}\nMessage : ${msg}`)},'_blank');
+}
+
+// ══════════════════════════════════════════
+// NEWSLETTER
+// ══════════════════════════════════════════
+function subscribeNL(){
+  const email=document.getElementById('nl-email').value.trim();
+  if(!email||!/\S+@\S+\.\S+/.test(email))return toast('Email invalide','te');
+  const subs=JSON.parse(localStorage.getItem('dsl_nl')||'[]');
+  if(subs.includes(email))return toast('Déjà abonné !','ts');
+  subs.push(email);localStorage.setItem('dsl_nl',JSON.stringify(subs));
+  document.getElementById('nl-msg').innerHTML='<div class="alert as"><span>✅</span> Abonnement confirmé !</div>';
+  document.getElementById('nl-msg').classList.remove('hidden');
+  document.getElementById('nl-email').value='';
+  toast('✅ Abonnement confirmé !','ts');
+}
+
+// ══════════════════════════════════════════
+// CONV GUIDE
+// ══════════════════════════════════════════
+function toggleConv(){const g=document.getElementById('conv-guide'),a=document.getElementById('conv-arr');g.classList.toggle('hidden');a.textContent=g.classList.contains('hidden')?'▼':'▲';}
+function showConv(t,btn){['spss','stata','r','online'].forEach(x=>{const el=document.getElementById('conv-'+x);if(el)el.classList.add('hidden');});const el=document.getElementById('conv-'+t);if(el)el.classList.remove('hidden');btn.closest('div').querySelectorAll('.btn').forEach(b=>{b.className=b===btn?'btn btn-sm bp':'btn btn-sm bs';});}
+
+// ══════════════════════════════════════════
+// FAQ
+// ══════════════════════════════════════════
+const FAQS=[
+  {q:'Comment importer mes données ?',a:'Allez dans "Importer données", glissez-déposez votre fichier CSV ou Excel, ou cliquez pour le sélectionner. La plateforme détecte automatiquement les variables.'},
+  {q:'Quels formats de fichiers sont acceptés ?',a:'DataSciLab accepte CSV (.csv) et Excel (.xlsx, .xls). Pour SPSS, Stata ou R, consultez le guide de conversion dans la section Import.'},
+  {q:'Est-ce que le site nécessite une connexion internet ?',a:'Une connexion est nécessaire pour charger le site la première fois (bibliothèques externes). Une fois chargé, les analyses, graphiques et exports fonctionnent sans connexion.'},
+  {q:'Y a-t-il une clé API ou un abonnement requis ?',a:'Non ! Toutes les fonctionnalités — analyses, graphiques, interprétations, génération de documents — fonctionnent sans clé API ni abonnement. DataSciLab est 100% gratuit.'},
+  {q:'Comment interpréter la p-valeur ?',a:'Si p < 0,05 : résultat statistiquement significatif. Si p ≥ 0,05 : résultat non significatif. L\'interprétation automatique vous guide à chaque analyse.'},
+  {q:'Quel test statistique choisir ?',a:'Utilisez la "Suggestion automatique" dans l\'onglet Analyser. En général : Test T pour 2 groupes, ANOVA pour ≥3 groupes, Corrélation pour 2 variables numériques, Chi-carré pour variables catégorielles.'},
+  {q:'Comment générer un document académique ?',a:'Allez dans "Documents", choisissez le type (mémoire, protocole ou slides), remplissez les informations et cliquez "Générer". Le document est créé automatiquement à partir de vos données.'},
+  {q:'Puis-je modifier l\'interprétation automatique ?',a:'Oui ! Dans l\'onglet Résultats, cliquez sur "✏️ Modifier" pour éditer l\'interprétation selon vos besoins.'},
+  {q:'Comment supprimer mes données ?',a:'Cliquez sur l\'icône 🗑️ dans les sections concernées, ou allez dans Paramètres → "Tout supprimer". Une confirmation est toujours demandée avant la suppression.'},
+  {q:'Comment contacter le support ?',a:'Via WhatsApp (+229 0197545389) ou email (moufsiakou1@gmail.com). Utilisez aussi le formulaire dans l\'onglet Contact.'},
+];
+function renderFAQ(){document.getElementById('faq-list').innerHTML=FAQS.map((f,i)=>`<div class="faq-item"><div class="faq-q" onclick="toggleFAQ(${i})"><span>${f.q}</span><span id="fa-${i}">▼</span></div><div class="faq-a" id="fb-${i}">${f.a}</div></div>`).join('');}
+function toggleFAQ(i){const el=document.getElementById('fb-'+i),a=document.getElementById('fa-'+i);el.classList.toggle('open');a.textContent=el.classList.contains('open')?'▲':'▼';}
+
+// ══════════════════════════════════════════
+// TUTORIAL
+// ══════════════════════════════════════════
+const TUTS=[
+  {ic:'🎉',t:'Bienvenue sur DataSciLab !',d:'La plateforme d\'analyse scientifique 100% gratuite — sans clé API, sans abonnement.'},
+  {ic:'🎯',t:'1. Définir votre thème',d:'Commencez par définir votre thème de recherche. L\'interprétation et les documents générés seront adaptés à votre contexte.'},
+  {ic:'📤',t:'2. Importer vos données',d:'Glissez-déposez votre fichier CSV ou Excel. Les variables sont détectées automatiquement.'},
+  {ic:'📊',t:'3. Lancer une analyse',d:'Choisissez parmi 6 tests statistiques ou utilisez la suggestion automatique. Configurez les variables et lancez.'},
+  {ic:'🧠',t:'4. Interprétation automatique',d:'Chaque analyse génère une interprétation scientifique automatique. Vous pouvez la modifier.'},
+  {ic:'📄',t:'5. Générer vos documents',d:'Créez un mémoire complet, un protocole ou un plan de présentation — automatiquement à partir de vos données !'},
+];
+let _ts=0;
+function startTut(){_ts=0;showTut();document.getElementById('tutorial').classList.add('open');}
+function showTut(){const s=TUTS[_ts];document.getElementById('tut-step').textContent=`ÉTAPE ${_ts+1} / ${TUTS.length}`;document.getElementById('tut-icon').textContent=s.ic;document.getElementById('tut-title').textContent=s.t;document.getElementById('tut-desc').textContent=s.d;document.getElementById('tut-next').textContent=_ts===TUTS.length-1?'Commencer !':'Suivant →';document.getElementById('tut-dots').innerHTML=TUTS.map((_,i)=>`<div class="tut-dot ${i===_ts?'active':''}"></div>`).join('');}
+function nextTut(){_ts++;if(_ts>=TUTS.length){closeTut();return;}showTut();}
+function closeTut(){document.getElementById('tutorial').classList.remove('open');}
+</script>
+</body>
+</html>
